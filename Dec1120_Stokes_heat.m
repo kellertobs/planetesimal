@@ -115,17 +115,17 @@ for ti = 1:nt
     = marker2grid(nx,nz,nx1,nz1,marknum,matm,xm,zm,dx,dz,x,z,xvx,zvx,...
     xvz,zvz,xp,zp,Tm,rhom,etam,km,cpm);
 
+    %Thermal boundary conditions
+    T1 = Thermal_boundary(T1,nz,nx,nz1,nx1);
     Pscale = Eta_amb/(dx+dz)*2; %pressure scaling coefficient, minimum viscosity    
     
     %compute stokes continuity
     [P_out,vx_out,vz_out] = stokes_continuity(nx,nz,nx1,nz1,indvx,indvz...
-    ,indP,Eta_out,Eta_mid,Pscale,gz,dx,dz,bctop,bcbottom,bcleft,bcright,Rho_vz,dt,gx,Rho_vx);
-    
+    ,indP,Eta_out,Eta_mid,Pscale,gz,dx,dz,bctop,bcbottom,bcleft,bcright,Rho_vz,dt,gx,Rho_vx);        
+
     %calculate shear heating
     [Ha,Hs] = shearheating(Ha,Hs,nx,nz,dx,dz,Epsxz,Epsxx,Sigxz,Sigxx,...
     vx_out,vz_out,Eta_out,Eta_mid,Rho_vz,T1,gz,Alpha);
-       
-
 
     % averaging velocities on centre nodes
     vx_mid = zeros(nz1,nx1);
@@ -719,6 +719,19 @@ end
 end
 end
 
+function T1 = Thermal_boundary(T1,nz,nx,nz1,nx1)
+% Thermal boundary conditions
+Ttop=273;
+Tbot=1500;
+%upper boundary
+T1(1,2:nx)      = 2*Ttop - T1(2,2:nx); %constant temp boundary
+%lower boundary
+T1(nz1,2:nx)    = 2*Tbot - T1(nz,2:nx); % Constant temp boundary
+%left boundary
+T1(:,1)=T1(:,2); % Insulating boundary
+% Right boundary
+T1(:,nx1)=T1(:,nx); % Insulating boundary
+end
 function Number = numsetup(nz,nx)
 %setup numbering system
 Number = zeros(nz,nx);
