@@ -94,6 +94,8 @@ Epsxx = Epsxz; %strain rate in
 Sigxx = Sigxz; %deviatoric stress the middle of grid/pressure nodes
 Hs = Sigxx; %shear heating, on the pressure nodes
 Ha = Hs; %adiabatic heating, on pressure nodes
+A = sparse(nx1*nz1*3,nx1*nz1*3); %A matrix for implicit solvers
+RHS = zeros(nx1*nz1*3,1); %RHS vector for implicit solvers
 
 % Boundary conditions: free slip=-1; No Slip=1
 bcleft=-1;
@@ -105,7 +107,9 @@ bcbottom=-1;
 time = 0;
 nt = 200;
 vpratio=1/3; % Weight of averaged velocity for moving markers
-dt = 1e10;
+dt = 1e10; % initial timestep
+dtkoef=1.2; % timestep increment
+dTmax = 20; %maximum temperature change per timestep
 dxzmax = 0.5;
 for ti = 1:nt
 %     time = time+dt;
@@ -128,30 +132,10 @@ for ti = 1:nt
     vx_out,vz_out,Eta_out,Eta_mid,Rho_vz,T1,gz,Alpha);
 
     % averaging velocities on centre nodes
-    vx_mid = zeros(nz1,nx1);
-    vz_mid = zeros(nz1,nx1);
-    for j = 2:1:nx %solve for ordinary nodes only
-    for i = 2:1:nz
-        vx_mid(i,j) = 1/((1/vx_out(i,j)+1/vx_out(i,j-1))/2);% vx; (current+left)/2
-        vz_mid(i,j) = 1/((1/vz_out(i,j)+1/vz_out(i-1,j))/2);% vz; (current+above)/2
-    end
-    end
-    %applying free-slip boundary conditions
-    %Top
-    vx_mid(1,2:nx-1) = -bctop*vx_mid(2,2:nx-1);
-    vz_mid(1,:)      = -vz_mid(2,:);
-    %bottom
-    vx_mid(nz1,2:nx-1) = -bcbottom*vx_mid(nz,2:nx-1);
-    vz_mid(nz1,:)      = -vz_mid(nz,:);
-    %left
-    vx_mid(:,1)       = -vx_mid(:,2);
-    vz_mid(2:nz-1,1)  = -bcleft*vz_mid(2:nz-1,2);
-    %right
-    vx_mid(:,nx1)=-vx_mid(:,nx);
-    vz_mid(2:nz-1,nx1)=-bcright*vz_mid(2:nz-1,nx); % Free slip    
+    [vx_mid,vz_mid] = mid_velocity(nx,nz,nx1,nz1,vx_out,vz_out,...
+        bctop,bcbottom,bcleft,bcright);  
 
     % Define timestep
-    dt=1e+30;
     maxvx=max(max(abs(vx_out)));
     maxvz=max(max(abs(vz_out)));
     if(dt*maxvx>dxzmax*dx)
@@ -160,6 +144,20 @@ for ti = 1:nt
     if(dt*maxvz>dxzmax*dz)
         dt=dxzmax*dz/maxvz;
     end
+    
+    %solve temperature diffusion
+    for Titer = 1:1:2
+        T2 = T_diffusion_implicit(T1,k_vx,k_vz,Rho_mid,CP_mid,dt,...
+            A,RHS,indP,dx,dz,Ha,Hs,nx1,nz1);
+        dTmax_current = max(max(abs(T2-T1)));
+        %check if the timestepping comlies with maximum dT
+        if (Titer<2 && dTmax_current>dTmax)
+            dt = dt/dTmax_current*dTmax;
+        else
+            break
+        end
+    end
+        
     vxm=zeros(4,1);
     vzm=zeros(4,1);
     %advect the marker coordinates. Eq. 8.19
@@ -717,6 +715,88 @@ for i = 2:1:nz
         *T1(i,j)*gz*Alpha;
 end
 end
+end
+
+function T_new = T_diffusion_implicit(T,k_vx,k_vz,Rho_mid,CP_mid,dt,...
+    A,RHS,indP,dx,dz,Ha,Hs,nx1,nz1)
+% set boundary conditions
+%top and bottom constant temperatures
+for j = 2:nx
+%top
+A(indP(1,j),indP(1,j))      = 1;
+A(indP(1,j),indP(1,j+1))    = 1;
+RHS(indP(1,j))              = 273*2;
+%bottom
+A(indP(nz1,j),indP(nz1,j))  = 1;
+A(indP(nz1,j),indP(nz1,j-1))= 1;
+RHS(indP(nz1,j))            = 1500*2;
+end
+%left and right insulating BC: dT/dx = 0
+for i = 1:1:nz1
+%left
+A(indP(i,1),indP(i,1))      =1;
+A(indP(i,1),indP(i,2))      =-1;
+RHS(indP(i,1))              =0;
+%right
+A(indP(i,nx1),indP(i,nx1))  =1;
+A(indP(i,nx1),indP(i,nx))   =-1;
+RHS(indP(i,nx1))            =0;
+end
+% internal T nodes
+for j = 2:1:nx
+for i = 2:1:nz
+    %conductivity
+    kx1 = k_vx(i,j-1); %left of mid node
+    kx2 = k_vx(i,j); %right of mid node
+    kz1 = k_vz(i-1,j); %above mid node
+    kz2 = k_vz(i,j); %below mid node
+    %fill A matrix coefficients, using the midpoint/P nodes
+    A(indP(i,j),indP(i,j-1))    = -kx1/(dx^2); % left node
+    A(indP(i,j),indP(i,j+1))    = -kx2/(dx^2); % right node
+    A(indP(i,j),indP(i,j))      = Rho_mid(i,j)*CP_mid(i,j)/dt ...
+                                    + (kx1+kx2)/(dx^2)...
+                                    + (kz1+kz2)/(dz^2); % middle node
+    A(indP(i,j),indP(i-1,j))    = -kz1/(dz^2); %top node
+    A(indP(i,j),indP(i+1,j))    = -kz2/(dz^2); %bottom node
+    %fill RHS vector
+    RHS(indP(i,j))              = T(i,j)*Rho_mid(i,j)*CP_mid(i,j)/dt...
+                                    +Ha(i,j) + Hs(i,j); % +Hr
+end
+end
+Tvec = A\RHS;
+Tnew = zeros(nz1,nx1);
+for j=1:1:nx1
+for i=1:1:nz1    
+    % Reload solution
+    T_new(i,j)=Tvec(indP(i,j));
+end
+end
+end
+
+function [vx_mid,vz_mid] = mid_velocity(nx,nz,nx1,nz1,vx_out,vz_out,...
+    bctop,bcbottom,bcleft,bcright)
+    % averaging velocities on centre nodes
+    vx_mid = zeros(nz1,nx1);
+    vz_mid = zeros(nz1,nx1);
+    for j = 2:1:nx %solve for ordinary nodes only
+    for i = 2:1:nz
+        vx_mid(i,j) = 1/((1/vx_out(i,j)+1/vx_out(i,j-1))/2);% vx; (current+left)/2
+        vz_mid(i,j) = 1/((1/vz_out(i,j)+1/vz_out(i-1,j))/2);% vz; (current+above)/2
+    end
+    end
+    %applying free-slip boundary conditions
+    %Top
+    vx_mid(1,2:nx-1) = -bctop*vx_mid(2,2:nx-1);
+    vz_mid(1,:)      = -vz_mid(2,:);
+    %bottom
+    vx_mid(nz1,2:nx-1) = -bcbottom*vx_mid(nz,2:nx-1);
+    vz_mid(nz1,:)      = -vz_mid(nz,:);
+    %left
+    vx_mid(:,1)       = -vx_mid(:,2);
+    vz_mid(2:nz-1,1)  = -bcleft*vz_mid(2:nz-1,2);
+    %right
+    vx_mid(:,nx1)=-vx_mid(:,nx);
+    vz_mid(2:nz-1,nx1)=-bcright*vz_mid(2:nz-1,nx); % Free slip  
 end
 
 function T1 = Thermal_boundary(T1,nz,nx,nz1,nx1)
