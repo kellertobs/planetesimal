@@ -56,7 +56,8 @@ m=1; % Marker counter
 % %       1mantle 2plume 3air
 rhom   = [3300   3200   1     ]; % Density, kg/m^3
 etam   = [1e+21  1e+20  1e+18 ]; % Viscosity, Pa s
-cpm = [3.3e+6 3.2e+6 3.3e+6]; % Volumetric heat capacity, kg/m^3
+% cpm    = [1000 1000 3.3e+6]; 
+rhocpm    = [3.3e+6 3.2e+6 3.3e+6]; % Volumetric heat capacity, kg/m^3
 % alpham = [3e-5   2e-5   0     ]; % Thermal expansion, 1/K
 km     = [3      2      3000  ]; % Thermal conductivity, W/m/K
 % hrm    = [2e-8   3e-8   0     ]; % Radiogenic heat production, W/m^3
@@ -69,8 +70,8 @@ for jm=1:1:nxm_all
         zm(m)=dzm/2+(im-1)*dzm+(rand-0.5)*dzm;
         % Marker properties
         rmark=((xm(m)-L/2)^2+(zm(m)-(D+Air)/2)^2)^0.5;
-        if(zm(m)>0.9*(Air+D))
-%         if rmark<rplume
+%         if(zm(m)>0.9*(Air+D))
+        if rmark<rplume
             matm(m) = 2; %plume material
             Tm(m) = 1800; % plume temperature
         else
@@ -80,7 +81,7 @@ for jm=1:1:nxm_all
         % Sticky air (to have internal free surface)
         if(zm(m)<Air)
             matm(m) = 3; %air material
-            Tm(m) = 298; %air temperature [k]
+            Tm(m) = 273; %air temperature [k]
         end
         % Update marker counter
         m=m+1;
@@ -109,6 +110,7 @@ nt = 200;
 vpratio=1/3; % Weight of averaged velocity for moving markers
 dt = 1e10; % initial timestep
 dtkoef=1.2; % timestep increment
+dsubgridt=1; % subgrid diffusion parameter
 dTmax = 20; %maximum temperature change per timestep
 dxzmax = 0.5;
 for ti = 1:nt
@@ -117,7 +119,7 @@ for ti = 1:nt
     %interpolate marker to real grid
     [Eta_out,Eta_mid,Rho_vz,Rho_vx,Rho_mid,k_vz,k_vx,CP_mid,T1]...
     = marker2grid(nx,nz,nx1,nz1,marknum,matm,xm,zm,dx,dz,x,z,xvx,zvx,...
-    xvz,zvz,xp,zp,Tm,rhom,etam,km,cpm);
+    xvz,zvz,xp,zp,Tm,rhom,etam,km,rhocpm);
 
     %Thermal boundary conditions
     T1 = Thermal_boundary(T1,nz,nx,nz1,nx1);
@@ -126,16 +128,13 @@ for ti = 1:nt
     %compute stokes continuity
     [P_out,vx_out,vz_out] = stokes_continuity(nx,nz,nx1,nz1,indvx,indvz...
     ,indP,Eta_out,Eta_mid,Pscale,gz,dx,dz,bctop,bcbottom,bcleft,bcright,Rho_vz,dt,gx,Rho_vx);        
-
-    %calculate shear heating
-    [Ha,Hs] = shearheating(Ha,Hs,nx,nz,dx,dz,Epsxz,Epsxx,Sigxz,Sigxx,...
-    vx_out,vz_out,Eta_out,Eta_mid,Rho_vz,T1,gz,Alpha);
-
+    
     % averaging velocities on centre nodes
     [vx_mid,vz_mid] = mid_velocity(nx,nz,nx1,nz1,vx_out,vz_out,...
         bctop,bcbottom,bcleft,bcright);  
 
     % Define timestep
+    dt = dt*dtkoef;
     maxvx=max(max(abs(vx_out)));
     maxvz=max(max(abs(vz_out)));
     if(dt*maxvx>dxzmax*dx)
@@ -145,17 +144,33 @@ for ti = 1:nt
         dt=dxzmax*dz/maxvz;
     end
     
+    %calculate shear heating
+    [Ha,Hs] = shearheating(Ha,Hs,nx,nz,dx,dz,Epsxz,Epsxx,Sigxz,Sigxx,...
+    vx_out,vz_out,Eta_out,Eta_mid,Rho_vz,T1,gz,Alpha);
+
     %solve temperature diffusion
     for Titer = 1:1:2
         T2 = T_diffusion_implicit(T1,k_vx,k_vz,Rho_mid,CP_mid,dt,...
-            A,RHS,indP,dx,dz,Ha,Hs,nx1,nz1);
+            dx,dz,Ha,Hs,nx1,nz1,nx,nz);
+        dTmax_current = max(max(abs(T2-T1)));
         %check if the timestepping comlies with maximum dT
-        if Titer<2 && 
-            
+        if (Titer<2 && dTmax_current>dTmax)
+            dt = dt/dTmax_current*dTmax;
+        else
+            break
         end
     end
-    
-    
+    dT = T2-T1;
+    %solve temperature markers
+    %temperature on subgrid
+    dTsub = Tempcorrection(dsubgridt,nx1,nz1,nx,nz,marknum,xm,zm,xp,zp,...
+    dx,dz,rhocpm,km,matm,T1,Tm,dt);
+    %corrected dT
+    dT = dT - dTsub;
+
+    %update T markers
+    Tm = UpdateTm(Tm,dT,marknum,xm,zm,xp,zp,dx,dz,nx,nz,T2,ti);
+
     vxm=zeros(4,1);
     vzm=zeros(4,1);
     %advect the marker coordinates. Eq. 8.19
@@ -263,7 +278,7 @@ for ti = 1:nt
         xm(m) = xm(m)+ dt*vxm_eff;   
         zm(m) = zm(m)+ dt*vzm_eff;
     end
-        vx_mid = zeros(nz1,nx1);
+vx_mid = zeros(nz1,nx1);
 vz_mid = zeros(nz1,nx1);
 % averaging velocities on centre nodes
 for j = 2:1:nx %solve for ordinary nodes only
@@ -272,49 +287,54 @@ for i = 2:1:nz
     vz_mid(i,j) = 1/((1/vz_out(i,j)+1/vz_out(i-1,j))/2);% vz; (current+above)/2
 end
 end
+disp(dt)
+disp(ti)
 time = time +dt; %time elapsed
 
-figure(1);colormap('Jet');clf
-subplot(1,3,1)
-pcolor(x2d,z2d,log10(Eta_out));
-shading flat;
-axis ij image;
-colorbar
-title('colormap of log_1_0Viscosity')
-hold on
-quiver(xp(3:5:nx1),zp(3:5:nz1),vx_mid(3:5:nz,3:5:nx1),vz_mid(3:5:nz1,3:5:nx1),'k')
-
-subplot(1,3,2)
-pcolor(xp(2:end-1),zp(2:end-1),Hs(2:end,2:end));axis ij image;shading interp, colorbar
-title('Shear heat distribution')
-
-subplot(1,3,3)
-pcolor(xp(2:end-1),zp(2:end-1),Ha(2:end,2:end));axis ij image;shading interp, colorbar
-title('Adiabatic heat distribution')
-
 % figure(1);colormap('Jet');clf
-% title(['time elapsed ' num2str(time) 'seconds'])
-% subplot(2,2,1)
-% pcolor(x2d,z2d,log10(Eta_out));% caxis([17 21])
+% subplot(1,3,1)
+% pcolor(x2d,z2d,log10(Eta_out));
 % shading flat;
 % axis ij image;
 % colorbar
 % title('colormap of log_1_0Viscosity')
 % hold on
 % quiver(xp(3:5:nx1),zp(3:5:nz1),vx_mid(3:5:nz,3:5:nx1),vz_mid(3:5:nz1,3:5:nx1),'k')
-% subplot(2,2,2)
-% pcolor(xp(2:end-1),zp(2:end-1)...
-%     ,P_out(2:end-1,2:end-1)./1e6);axis ij image;shading interp, colorbar
 % 
+% subplot(1,3,2)
+% pcolor(xp(2:end-1),zp(2:end-1),Hs(2:end,2:end));axis ij image;shading interp, colorbar
+% title('Shear heat distribution')
 % 
-% subplot(2,2,3)
-% 
-% pcolor(xvx,zvx,vx_out(1:nz1,1:nx));axis ij image;
-% shading interp, colorbar
-% title(['colormap of vx, time elapsed ',num2str(time/3.154e+7/1e6),' Million years'])
-% 
-% subplot(2,2,4)
-% pcolor(xvz,zvz,vz_out(1:nz,1:nx1));axis ij image;shading interp, colorbar
+% subplot(1,3,3)
+% pcolor(xp(2:end-1),zp(2:end-1),Ha(2:end,2:end));axis ij image;shading interp, colorbar
+% title('Adiabatic heat distribution')
+
+figure(1);colormap('Jet');clf
+title(['time elapsed ' num2str(time) 'seconds'])
+subplot(2,3,1)
+pcolor(x2d,z2d,log10(Eta_out));% caxis([17 21])
+shading flat;
+axis ij image;
+colorbar
+title('colormap of log_1_0Viscosity')
+hold on
+quiver(xp(3:5:nx1),zp(3:5:nz1),vx_mid(3:5:nz,3:5:nx1),vz_mid(3:5:nz1,3:5:nx1),'k')
+subplot(2,3,2)
+pcolor(xp(2:end-1),zp(2:end-1)...
+    ,P_out(2:end-1,2:end-1)./1e6);axis ij image;shading interp, colorbar
+ 
+subplot(2,3,3)
+
+pcolor(xvx,zvx,vx_out(1:nz1,1:nx));axis ij image;
+shading interp, colorbar
+title(['colormap of vx, time elapsed ',num2str(time/3.154e+7/1e6),' Million years'])
+
+subplot(2,3,4)
+pcolor(xvz,zvz,vz_out(1:nz,1:nx1));axis ij image;shading interp, colorbar
+
+subplot(2,3,5)
+pcolor(xp,zp,T1);shading flat;
+axis ij image, colorbar
 %         
 % figure(2);colormap('Jet');clf
 % subplot(2,1,1)
@@ -715,30 +735,33 @@ end
 end
 end
 
-function T_new = T_diffusion_implicit(T,k_vx,k_vz,Rho_mid,CP_mid,dt,...
-    A,RHS,indP,dx,dz,Ha,Hs,nx1,nz1)
+function T_new = T_diffusion_implicit(T,k_vx,k_vz,CP_mid,dt,...
+    dx,dz,Ha,Hs,nx1,nz1,nx,nz)
+indP = numsetup(nz1,nx1);
+A = sparse(nz1*nx1,nz1*nx1);
+RHS = zeros(nz1*nx1,1);
 % set boundary conditions
 %top and bottom constant temperatures
-for j = 2:nx
+for j = 2:1:nx
 %top
 A(indP(1,j),indP(1,j))      = 1;
-A(indP(1,j),indP(1,j+1))    = 1;
+A(indP(1,j),indP(2,j))      = 1;
 RHS(indP(1,j))              = 273*2;
 %bottom
 A(indP(nz1,j),indP(nz1,j))  = 1;
-A(indP(nz1,j),indP(nz1,j-1))= 1;
+A(indP(nz1,j),indP(nz,j))   = 1;
 RHS(indP(nz1,j))            = 1500*2;
 end
 %left and right insulating BC: dT/dx = 0
 for i = 1:1:nz1
 %left
-A(indP(i,1),indP(i,1))      =1;
-A(indP(i,1),indP(i,2))      =-1;
-RHS(indP(i,1))              =0;
+A(indP(i,1),indP(i,1))      = 1;
+A(indP(i,1),indP(i,2))      = -1;
+RHS(indP(i,1))              = 0;
 %right
-A(indP(i,nx1),indP(i,nx1))  =1;
-A(indP(i,nx1),indP(i,nx))   =-1;
-RHS(indP(i,nx1))            =0;
+A(indP(i,nx1),indP(i,nx1))  = 1;
+A(indP(i,nx1),indP(i,nx))   = -1;
+RHS(indP(i,nx1))            = 0;
 end
 % internal T nodes
 for j = 2:1:nx
@@ -751,18 +774,18 @@ for i = 2:1:nz
     %fill A matrix coefficients, using the midpoint/P nodes
     A(indP(i,j),indP(i,j-1))    = -kx1/(dx^2); % left node
     A(indP(i,j),indP(i,j+1))    = -kx2/(dx^2); % right node
-    A(indP(i,j),indP(i,j))      = Rho_mid(i,j)*CP_mid(i,j)/dt ...
+    A(indP(i,j),indP(i,j))      = CP_mid(i,j)/dt ...
                                     + (kx1+kx2)/(dx^2)...
                                     + (kz1+kz2)/(dz^2); % middle node
     A(indP(i,j),indP(i-1,j))    = -kz1/(dz^2); %top node
     A(indP(i,j),indP(i+1,j))    = -kz2/(dz^2); %bottom node
     %fill RHS vector
-    RHS(indP(i,j))              = T(i,j)*Rho_mid(i,j)*CP_mid(i,j)/dt...
+    RHS(indP(i,j))              = T(i,j)*CP_mid(i,j)/dt...
                                     +Ha(i,j) + Hs(i,j); % +Hr
 end
 end
 Tvec = A\RHS;
-Tnew = zeros(nz1,nx1);
+T_new = zeros(nz1,nx1);
 for j=1:1:nx1
 for i=1:1:nz1    
     % Reload solution
@@ -795,6 +818,94 @@ function [vx_mid,vz_mid] = mid_velocity(nx,nz,nx1,nz1,vx_out,vz_out,...
     %right
     vx_mid(:,nx1)=-vx_mid(:,nx);
     vz_mid(2:nz-1,nx1)=-bcright*vz_mid(2:nz-1,nx); % Free slip  
+end
+
+function dTsub = Tempcorrection(dsubgridt,nx1,nz1,nx,nz,marknum,xm,zm,xp,zp,...
+    dx,dz,rhocpm,km,matm,T1,Tm,dt)
+%compute dT subgrid
+if(dsubgridt>0)
+dTCSUM=zeros(nz1,nx1);
+RHOCPSUM=zeros(nz1,nx1);
+for m = 1:1:marknum
+    mat = matm(m);
+        % Define i,j indexes for the upper left node
+    j=fix((xm(m)-xp(1))/dx)+1;
+    i=fix((zm(m)-zp(1))/dz)+1;
+    if(j<1)
+        j=1;
+    elseif(j>nx)
+        j=nx;
+    end
+    if(i<1)
+        i=1;
+    elseif(i>nz)
+        i=nz;
+    end
+    %distance between nodes and markers
+    dxm1 = abs(xm(m)-xp(j));
+    dzm1 = abs(zm(m)-zp(i));
+    %compute weights of distances from real nodes
+    wtij = (1-dxm1/dx)*(1-dzm1/dz);
+    wtij1 = (dxm1/dx)*(1-dzm1/dz);
+    wti1j = (1-dxm1/dx)*(dzm1/dz);
+    wti1j1 = dxm1*dzm1/dx/dz;
+    %calculate dT on the dubgrid
+    dTmnTm = T1(i,j)*wtij + T1(i,j+1)*wtij1 + T1(i+1,j)*wti1j +...
+        T1(i+1,j+1)*wti1j1 - Tm(m);
+    tdiff = rhocpm(mat)/km(mat)/(2/dx^2 +2/dz^2);
+    dTsubgrid = dTmnTm - dTmnTm*exp(-dsubgridt*dt/tdiff);
+    % update properties
+    %i,j
+    dTCSUM(i,j)         = dTCSUM(i,j)       + dTsubgrid*rhocpm(mat)*wtij;
+    RHOCPSUM(i,j)       = RHOCPSUM(i,j)     + rhocpm(mat)*wtij;
+    %i,j+1
+    dTCSUM(i,j+1)       = dTCSUM(i,j+1)     + dTsubgrid*rhocpm(mat)*wtij1;
+    RHOCPSUM(i,j+1)     = RHOCPSUM(i,j+1)   + rhocpm(mat)*wtij1;
+    %i+1,j
+    dTCSUM(i+1,j)       = dTCSUM(i+1,j)     + dTsubgrid*rhocpm(mat)*wti1j;
+    RHOCPSUM(i+1,j)     = RHOCPSUM(i+1,j)   + rhocpm(mat)*wti1j;
+    %i+1,j+1
+    dTCSUM(i+1,j+1)     = dTCSUM(i+1,j+1)   + dTsubgrid*rhocpm(mat)*wti1j1;
+    RHOCPSUM(i+1,j+1)   = RHOCPSUM(i+1,j+1) + rhocpm(mat)*wti1j1;
+end
+%compute dT subgrid
+dTsub = dTCSUM./RHOCPSUM;
+end
+end
+
+function Tm = UpdateTm(Tm,dT,marknum,xm,zm,xp,zp,dx,dz,nx,nz,T2,timestep)
+% Interpolate DT to markers
+for m=1:1:marknum
+    % Define i,j indexes for the upper left node
+    j=fix((xm(m)-xp(1))/dx)+1;
+    i=fix((zm(m)-zp(1))/dz)+1;
+    if(j<1)
+        j=1;
+    elseif(j>nx)
+        j=nx;
+    end
+    if(i<1)
+        i=1;
+    elseif(i>nz)
+        i=nz;
+    end
+    % Compute distances
+    dxm1=xm(m)-xp(j);
+    dzm1=zm(m)-zp(i);
+    % Compute weights
+    wtmij=(1-dxm1/dx)*(1-dzm1/dz);
+    wtmi1j=(1-dxm1/dx)*(dzm1/dz);    
+    wtmij1=(dxm1/dx)*(1-dzm1/dz);
+    wtmi1j1=(dxm1/dx)*(dzm1/dz);
+    % Update properties
+    Tm(m)=Tm(m)+dT(i,j)*wtmij+dT(i+1,j)*wtmi1j+...
+            dT(i,j+1)*wtmij1+dT(i+1,j+1)*wtmi1j1;
+    % Interpolate tk2 at 1st timestep
+    if(timestep==1)
+        Tm(m)=T2(i,j)*wtmij+T2(i+1,j)*wtmi1j+...
+            T2(i,j+1)*wtmij1+T2(i+1,j+1)*wtmi1j1;
+    end
+end
 end
 
 function T1 = Thermal_boundary(T1,nz,nx,nz1,nx1)
