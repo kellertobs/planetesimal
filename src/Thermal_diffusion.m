@@ -1,4 +1,4 @@
-function [T_diff,dT,dt] = Thermal_diffusion(nx1,nz1,dx,dz,T_mid,k_vx,k_vz,RhoCp_mid,Number,Hs,Ha,Hr,T_top,T_bot,dt,dTmax)
+function [T_diff,dT,dt] = Thermal_diffusion(nx1,nz1,dx,dz,T_mid,k_vx,k_vz,RhoCp_mid,Number,Hs,Ha,Hr,T_top,T_air,dt,dTmax,Material)
 % Thermal iterations
 
 
@@ -9,10 +9,12 @@ A           = sparse(nz1*nx1,nz1*nx1);
 RHS         = zeros(nz1*nx1,1);
 maxdT       = 100;
 titer       = 1;
+
+
 for titer=1:1:2
 %% fill implicit matrices
 for i = 1:1:nz1
-for j = 1:1:nx1
+for j = 1:1:nx1    
     % setup boundary conditions
     if (i == 1 || i == nz1 || j==1 || j==nx1)
         % Top BC, constant temperature
@@ -25,23 +27,32 @@ for j = 1:1:nx1
         if (i==nz1 && j>1 && j<nx1)
             A(Ind(i,j),Ind(i,j))    = 1;
             A(Ind(i,j),Ind(i-1,j))  = 1;
-            RHS(Ind(i,j))           = T_bot*2;
+            RHS(Ind(i,j))           = T_mid(i,j)*2;
         end
-        % Left BC, insulating
+        % Left BC, far field boundary
         if (j==1)
             A(Ind(i,j),Ind(i,j))    = 1;
-            A(Ind(i,j),Ind(i,j+1))  = -1;
-            RHS(Ind(i,j))           = 0;
+            A(Ind(i,j),Ind(i,j+1))  = -1e6/(1e6 +dx);
+            RHS(Ind(i,j))           = dx*T_mid(i,j)/(1e6 +dx);
         end
-        % Right BC, insulating
+        % Right BC, far field boundary
         if (j==nx1)
             A(Ind(i,j),Ind(i,j))    = 1;
-            A(Ind(i,j),Ind(i,j-1))  = -1;
-            RHS(Ind(i,j))           = 0;
+            A(Ind(i,j),Ind(i,j-1))  = -1e6/(1e6 +dx);
+            RHS(Ind(i,j))           = dx*T_mid(i,j)/(1e6 +dx);
         end
     
+        
     % internal points
     else
+    
+%     % overwrite air
+%     if Material(i,j) == 2
+%     A(Ind(i,j),Ind(i,j))    = 1;
+%     A(Ind(i,j),Ind(i+1,j))  = 1;
+%     RHS(Ind(i,j))           = T_top*2;  
+%     end
+    
     % fill A matrix
     A(Ind(i,j),Ind(i,j-1))      = -k_vx(i,j-1)/dx^2;     % left of current node
     A(Ind(i,j),Ind(i,j+1))      = -k_vx(i,j)  /dx^2;     % right of current node
@@ -66,11 +77,14 @@ for i=1:1:nz1
     T_diff(i,j)=Tvec(Ind(i,j));
 end
 end
+
+% Overwrite air temperature
+indair = find(Material == 2);
+T_diff(indair) = T_air;
+
 % compute dT
 dT          = T_diff-T_mid;
 maxdT       = max(max(abs(dT)));
-
-
 
 % thermal timestepping conditions
 maxdT       = max(max(abs(dT)));
