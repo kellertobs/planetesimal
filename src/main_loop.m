@@ -18,6 +18,12 @@ for ti = 1:nt
     % right boundary, insulating boundary
     T_mid(:,nx1)    = T_mid(:,nx);
 
+    % Imping plume beneath lithosphere
+    midx = fix(L/2);
+    indexx = find(abs(xp(1,:)) <= midx+ (L*0.2) & abs(xp(1,:)) >= midx - (L*0.2));
+    T_mid(nz1,indexx) = T_bot+300;
+    
+    
     % Solve momentum and continuity equations
     Pscale  = Eta_mantle/(dx+dz)*2; %pressure scaling coefficient, minimum viscosity
     
@@ -102,6 +108,8 @@ for ti = 1:nt
     
     subplot(2,2,4)
     pcolor(xp(2:end-1),zp(2:end-1),T_diff(2:end-1,2:end-1));axis ij image;shading interp, colorbar
+    hold on
+    contour(xp(2:end-1),zp(2:end-1),T_mid(2:end-1,2:end-1),[100:100:1800],'k')
     
 end
 
