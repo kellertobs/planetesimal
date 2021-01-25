@@ -1,7 +1,6 @@
 function [Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha] = ...
     Heat_generation(Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,nx,nz,dx,dz,...
     vx_out,vz_out,Eta_out,Eta_mid,Rho_vz,Alpha_mid,T_mid,gz)
-% !!Calculation of radiogenic heating required!!
 
 for j = 1:1:nx
 for i = 1:1:nz

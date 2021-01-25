@@ -7,7 +7,7 @@ T_diff      = T_mid;
 Ind         = Number;
 A           = sparse(nz1*nx1,nz1*nx1);
 RHS         = zeros(nz1*nx1,1);
-maxdT       = 100;
+maxdT       = 1000;
 titer       = 1;
 
 
@@ -32,14 +32,14 @@ for j = 1:1:nx1
         % Left BC, far field boundary
         if (j==1)
             A(Ind(i,j),Ind(i,j))    = 1;
-            A(Ind(i,j),Ind(i,j+1))  = -1e6/(1e6 +dx);
-            RHS(Ind(i,j))           = dx*T_mid(i,j)/(1e6 +dx);
+            A(Ind(i,j),Ind(i,j+1))  = -1;
+            RHS(Ind(i,j))           = 0;
         end
         % Right BC, far field boundary
         if (j==nx1)
             A(Ind(i,j),Ind(i,j))    = 1;
-            A(Ind(i,j),Ind(i,j-1))  = -1e6/(1e6 +dx);
-            RHS(Ind(i,j))           = dx*T_mid(i,j)/(1e6 +dx);
+            A(Ind(i,j),Ind(i,j-1))  = -1;
+            RHS(Ind(i,j))           = 0;
         end
     
         
@@ -79,8 +79,8 @@ end
 end
 
 % Overwrite air temperature
-indair = find(Material == 2);
-T_diff(indair) = T_air;
+% indair = find(Material == 2);
+T_diff(find(Material == 2)) = T_air;
 
 % compute dT
 dT          = T_diff-T_mid;

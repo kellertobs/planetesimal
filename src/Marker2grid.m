@@ -1,28 +1,28 @@
-function [Eta_out,Eta_mid,Rho_vz,Rho_vx,Rho_mid,k_vz,k_vx,RhoCp_mid,T_mid,Alpha_mid,Hr]...
+function [Eta_out,Eta_mid,k_vz,k_vx,RhoCp_mid,T_mid,Alpha_mid,Hr,Material,Alpha_vx,Alpha_vz]...
     = Marker2grid(marknum,nx,nx1,nz,nz1,dx,dz,xm,zm,...
     x,z,xvx,zvx,xvz,zvz,xp,zp,...
-    Etam,Rhom,Kappam,Tm,RhoCpm,Alpham,Hrm)
+    Etam,Kappam,Tm,RhoCpm,Alpham,Hrm,Mtype)
 
 %% create arrays
 %ordinary nodes
-ETASUM          = zeros(nz,nx); % viscosity         
-WTSUM           = zeros(nz,nx); % weighted average
+ETASUM          = zeros(nz1,nx1); % viscosity         
+WTSUM           = zeros(nz1,nx1); % weighted average
 % vz grid
-RHOSUMvz        = zeros(nz,nx1); % Density
-KSUMvz          = zeros(nz,nx1); % Thermal conductivity
-WTSUMvz         = zeros(nz,nx1); % weighted average
+KSUMvz          = zeros(nz1,nx1); % Thermal conductivity
+ASUMvz          = zeros(nz1,nx1);% Thermal expansion
+WTSUMvz         = zeros(nz1,nx1); % weighted average
 %vx grid
-RHOSUMvx        = zeros(nz1,nx); % density
-KSUMvx          = zeros(nz1,nx); % Thermal conductivity
-WTSUMvx         = zeros(nz1,nx); % weighted average
+KSUMvx          = zeros(nz1,nx1); % Thermal conductivity
+ASUMvx          = zeros(nz1,nx1);% Thermal expansion
+WTSUMvx         = zeros(nz1,nx1); % weighted average
 %Pgrid/middle of blocks grid
 TSUMp           = zeros(nz1,nx1); % Temperature
-RHOSUMp         = zeros(nz1,nx1); % Density
 RHOCPSUMp       = zeros(nz1,nx1); % Heat capacity
 ETASUMp         = zeros(nz1,nx1); % Viscosity
 ASUMp           = zeros(nz1,nx1); % Thermal expansion
 HRSUMp          = zeros(nz1,nx1); % Radiogenic heating
 WTSUMp          = zeros(nz1,nx1); % weighted average
+MARKSUMp        = zeros(nz1,nx1);
 
 
 % loop through each marker
@@ -90,20 +90,20 @@ for m = 1:1:marknum
     wti1j1      = dxm1*dzm1/dx/dz;
     % update properties
     % [i,j]
-    RHOSUMvx(i,j)     = RHOSUMvx(i,j)       + Rhom(m)*wtij;
     KSUMvx(i,j)       = KSUMvx(i,j)         + Kappam(m)*wtij;
+    ASUMvx(i,j)       = ASUMvx(i,j)         + Alpham(m)*wtij;
     WTSUMvx(i,j)      = WTSUMvx(i,j)        + wtij;
     % [i,j+1]
-    RHOSUMvx(i,j+1)   = RHOSUMvx(i,j+1)     + Rhom(m)*wtij1;
     KSUMvx(i,j+1)     = KSUMvx(i,j+1)       + Kappam(m)*wtij1;
+    ASUMvx(i,j+1)     = ASUMvx(i,j+1)       + Alpham(m)*wtij1;
     WTSUMvx(i,j+1)    = WTSUMvx(i,j+1)      + wtij1;
     % [i+1,j]
-    RHOSUMvx(i+1,j)   = RHOSUMvx(i+1,j)     + Rhom(m)*wti1j;
     KSUMvx(i+1,j)     = KSUMvx(i+1,j)       + Kappam(m)*wti1j;
+    ASUMvx(i+1,j)     = ASUMvx(i+1,j)       + Alpham(m)*wti1j;
     WTSUMvx(i+1,j)    = WTSUMvx(i+1,j)      + wti1j;
     % [i+1,j+1]
-    RHOSUMvx(i+1,j+1) = RHOSUMvx(i+1,j+1)   + Rhom(m)*wti1j1;
     KSUMvx(i+1,j+1)   = KSUMvx(i+1,j+1)     + Kappam(m)*wti1j1;
+    ASUMvz(i+1,j+1)   = ASUMvz(i+1,j+1)     + Alpham(m)*wti1j1;
     WTSUMvx(i+1,j+1)  = WTSUMvx(i+1,j+1)    + wti1j1;
     
     %% staggered vz grid
@@ -131,20 +131,20 @@ for m = 1:1:marknum
     wti1j1      = dxm1*dzm1/dx/dz;
     % update properties
     % [i,j]
-    RHOSUMvz(i,j)     = RHOSUMvz(i,j)       + Rhom(m)*wtij;
     KSUMvz(i,j)       = KSUMvz(i,j)         + Kappam(m)*wtij;
+    ASUMvz(i,j)       = ASUMvz(i,j)         + Alpham(m)*wtij;
     WTSUMvz(i,j)      = WTSUMvz(i,j)        + wtij;
     % [i,j+1]
-    RHOSUMvz(i,j+1)   = RHOSUMvz(i,j+1)     + Rhom(m)*wtij1;
     KSUMvz(i,j+1)     = KSUMvz(i,j+1)       + Kappam(m)*wtij1;
+    ASUMvz(i,j+1)     = ASUMvz(i,j+1)       + Alpham(m)*wtij1;
     WTSUMvz(i,j+1)    = WTSUMvz(i,j+1)      + wtij1;
     % [i+1,j]
-    RHOSUMvz(i+1,j)   = RHOSUMvz(i+1,j)     + Rhom(m)*wti1j;
     KSUMvz(i+1,j)     = KSUMvz(i+1,j)       + Kappam(m)*wti1j;
+    ASUMvz(i+1,j)     = ASUMvz(i+1,j)       + Alpham(m)*wti1j;
     WTSUMvz(i+1,j)    = WTSUMvz(i+1,j)      + wti1j;
     % [i+1,j+1]
-    RHOSUMvz(i+1,j+1) = RHOSUMvz(i+1,j+1)   + Rhom(m)*wti1j1;
     KSUMvz(i+1,j+1)   = KSUMvz(i+1,j+1)     + Kappam(m)*wti1j1;
+    ASUMvz(i+1,j+1)   = ASUMvz(i+1,j+1)     + Alpham(m)*wti1j1;
     WTSUMvz(i+1,j+1)  = WTSUMvz(i+1,j+1)    + wti1j1;
     
     %% staggered P/mid grid
@@ -173,35 +173,35 @@ for m = 1:1:marknum
     % update properties
     % [i,j]
     ETASUMp(i,j)            = ETASUMp(i,j)          + Etam(m)*wtij;
-    RHOSUMp(i,j)            = RHOSUMp(i,j)          + Rhom(m)*wtij;
     RHOCPSUMp(i,j)          = RHOCPSUMp(i,j)        + RhoCpm(m)*wtij;
     TSUMp(i,j)              = TSUMp(i,j)            + Tm(m)*wtij;
     ASUMp(i,j)              = ASUMp(i,j)            + Alpham(m)*wtij;
     HRSUMp(i,j)             = HRSUMp(i,j)           + Hrm(m)*wtij;
+    MARKSUMp(i,j)           = MARKSUMp(i,j)         + Mtype(m)*wtij;
     WTSUMp(i,j)             = WTSUMp(i,j)           + wtij;
     % [i,j+1]
     ETASUMp(i,j+1)          = ETASUMp(i,j+1)        + Etam(m)*wtij1;
-    RHOSUMp(i,j+1)          = RHOSUMp(i,j+1)        + Rhom(m)*wtij1;
     RHOCPSUMp(i,j+1)        = RHOCPSUMp(i,j+1)      + RhoCpm(m)*wtij1;
     TSUMp(i,j+1)            = TSUMp(i,j+1)          + Tm(m)*wtij1;
     ASUMp(i,j+1)            = ASUMp(i,j+1)          + Alpham(m)*wtij1;
     HRSUMp(i,j+1)           = HRSUMp(i,j+1)         + Hrm(m)*wtij1;
+    MARKSUMp(i,j+1)         = MARKSUMp(i,j+1)       + Mtype(m)*wtij1;
     WTSUMp(i,j+1)           = WTSUMp(i,j+1)         + wtij1;
     % [i+1,j]
     ETASUMp(i+1,j)          = ETASUMp(i+1,j)        + Etam(m)*wti1j;
-    RHOSUMp(i+1,j)          = RHOSUMp(i+1,j)        + Rhom(m)*wti1j;
     RHOCPSUMp(i+1,j)        = RHOCPSUMp(i+1,j)      + RhoCpm(m)*wti1j;
     TSUMp(i+1,j)            = TSUMp(i+1,j)          + Tm(m)*wti1j;
     ASUMp(i+1,j)            = ASUMp(i+1,j)          + Alpham(m)*wti1j;
     HRSUMp(i+1,j)           = HRSUMp(i+1,j)         + Hrm(m)*wti1j;
+    MARKSUMp(i+1,j)         = MARKSUMp(i+1,j)       + Mtype(m)*wti1j;
     WTSUMp(i+1,j)           = WTSUMp(i+1,j)         + wti1j;
     % [i+1,j+1]
     ETASUMp(i+1,j+1)        = ETASUMp(i+1,j+1)      + Etam(m)*wti1j1;
-    RHOSUMp(i+1,j+1)        = RHOSUMp(i+1,j+1)      + Rhom(m)*wti1j1;
     RHOCPSUMp(i+1,j+1)      = RHOCPSUMp(i+1,j+1)    + RhoCpm(m)*wti1j1;
     TSUMp(i+1,j+1)          = TSUMp(i+1,j+1)        + Tm(m)*wti1j1;
     ASUMp(i+1,j+1)          = ASUMp(i+1,j+1)        + Alpham(m)*wti1j1;
     HRSUMp(i+1,j+1)         = HRSUMp(i+1,j+1)       + Hrm(m)*wti1j1;
+    MARKSUMp(i+1,j+1)       = MARKSUMp(i+1,j+1)     + Mtype(m)*wti1j1;
     WTSUMp(i+1,j+1)         = WTSUMp(i+1,j+1)       + wti1j1;
 end
 
@@ -211,18 +211,18 @@ end
 Eta_out     = ETASUM./WTSUM;        % Viscosity
 
 % vx grid
-Rho_vx      = RHOSUMvx./WTSUMvx;    % Density 
 k_vx        = KSUMvx./WTSUMvx;      % Thermal conductivity
+Alpha_vx    = ASUMvx./WTSUMvx;      % thermal expansion staggered
 
 % vz grid
-Rho_vz      = RHOSUMvz./WTSUMvz;    % Density
 k_vz        = KSUMvz./WTSUMvz;      % Thermal conductivity
+Alpha_vz    = ASUMvz./WTSUMvz;      % thermal expansion staggered
 
 % P/mid grid
 Eta_mid     = ETASUMp./WTSUMp;      % Viscosity
-Rho_mid     = RHOSUMp./WTSUMp;      % Density
 RhoCp_mid   = RHOCPSUMp./WTSUMp;    % Heat capacity
 T_mid       = TSUMp./WTSUMp;        % Tempaerature
 Alpha_mid   = ASUMp./WTSUMp;        % Thermal expansion
 Hr          = HRSUMp./WTSUMp;       % radiogenic heating
+Material    = round(MARKSUMp./WTSUMp);     % material type
 

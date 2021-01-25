@@ -1,7 +1,7 @@
 % Planetesimal user startup
 % valid for 2D rectangular grid
 clear; 
-close all
+% close all
 
 %% setup model domain (user editable)
 L           = 500*1e3;                          % length of x domain
@@ -26,13 +26,16 @@ Eta_mantle  =   1e21;   Eta_plume   =   1e20;   Eta_air     =   1e18;   % viscos
 % T_mantle    =   1500;   T_plume     =   1800;   T_air       =   273;    % Temperture
 Alpha_mantle=   3e-5;   Alpha_plume =   2e-5;   Alpha_air   =   0;      % thermal expansion   
 RhoCp_mantle=   3.3e6;  RhoCp_plume =   3.2e6;  RhoCp_air   =   3.3e6;  % Volumetric heat capacity   
-Kappa_mantle=   3;      Kappa_plume =   2;      Kappa_air   =   0.1;   % Thermal conductivity
+Kappa_mantle=   10;      Kappa_plume =   2;      Kappa_air   =   0.1;   % Thermal conductivity
 Hr_mantle   =   2e-8;   Hr_plume    =   3e-8;   Hr_air      =   0;      % Radiogenic heat production
 
 % stable temperature profile, constant gradient between base and top of
 % crust, Sticky air will have an overwritten temperature when solved
 %           bot      ||          top         ||         Air
 T_bot       =   1500;   T_top       =   273;    T_air       = 273;
+
+Rho0        = Rho_air; %baseline density = minimum density
+
 %% setup grid parameters
 % markers per grid block = nxm x nzm
 nxm             = 5;                % number of x markers within each block
@@ -57,6 +60,7 @@ nt              = 200;      % number of loop iterations
 vpratio         = 1/3;      % Weight of averaged velocity for moving markers
 dt              = 1e10;     % initial time-stepping (variable within code)
 dtkoef          = 1.2;      % timestep increment
-dxzmax          = 0.5;      % maximum advected movement
-dTmax           = 20;       % maximum temperature increase
+dxzmax          = 1;        % maximum advected movement
+dTmax           = 50;       % maximum temperature increase
 dsubgridt       = 1;        % subgrid for temperature advection, 1=with, 0=without
+Restol          = 1e-3;     %residual tolerance
