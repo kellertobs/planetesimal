@@ -1,4 +1,4 @@
-function [P_out,vx_out,vz_out] = stokes_continuity(nx,nz,nx1,nz1,...
+function [P_out,vx_out,vz_out,vx_mid,vz_mid] = stokes_continuity(nx,nz,nx1,nz1,...
     indvx,indvz,indP,dx,dz,Pscale,...
     Eta_out,Eta_mid,Rho_vx,Rho_vz,gx,gz,dt,bctop,bcbottom,bcleft,bcright)
 
@@ -137,4 +137,28 @@ for i = 1:1:nz1
     
 end
 end
+
+    % averaging velocities on centre nodes
+    vx_mid = zeros(nz1,nx1);
+    vz_mid = zeros(nz1,nx1);    
+    
+    for j = 2:1:nx %solve for ordinary nodes only
+    for i = 2:1:nz
+        vx_mid(i,j) = 1/((1/vx_out(i,j)+1/vx_out(i,j-1))/2);% vx; (current+left)/2
+        vz_mid(i,j) = 1/((1/vz_out(i,j)+1/vz_out(i-1,j))/2);% vz; (current+above)/2
+    end
+    end
+    %applying free-slip boundary conditions
+    %Top
+    vx_mid(1,2:nx-1)    = -bctop*vx_mid(2,2:nx-1);
+    vz_mid(1,:)         = -vz_mid(2,:);
+    %bottom
+    vx_mid(nz1,2:nx-1)  = -bcbottom*vx_mid(nz,2:nx-1);
+    vz_mid(nz1,:)       = -vz_mid(nz,:);
+    %left
+    vx_mid(:,1)         = -vx_mid(:,2);
+    vz_mid(2:nz-1,1)    = -bcleft*vz_mid(2:nz-1,2);
+    %right
+    vx_mid(:,nx1)       =-vx_mid(:,nx);
+    vz_mid(2:nz-1,nx1)  =-bcright*vz_mid(2:nz-1,nx); % Free slip
 

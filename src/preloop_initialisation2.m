@@ -9,7 +9,7 @@
 marknum         = nxm_all*nzm_all;  % Total number of markers
 xm              = zeros(1,marknum); % Horizontal coordinates, m
 zm              = zeros(1,marknum); % Vertical coordinates, m
-Rhom            = zeros(1,marknum); % density at M
+% Rhom            = zeros(1,marknum); % density at M
 Etam            = zeros(1,marknum); % Viscosity at M
 Alpham          = zeros(1,marknum); % Thermal expansion at M
 RhoCpm          = zeros(1,marknum); % Heat capacity at M
@@ -33,6 +33,7 @@ for im=1:1:nzm_all
         RhoCpm(m)   = RhoCp_mantle;  % Heat capacity
         Kappam(m)   = Kappa_mantle;  % Thermal conductivity
         Hrm(m)      = Hr_mantle;     % Radiogenic heating
+        Mtype(m)    = 1;             % marker type; 1 = mantle
     else
         Tm(m)       = T_air;
         Rhom(m)     = Rho_air;       % Density 
@@ -41,6 +42,7 @@ for im=1:1:nzm_all
         RhoCpm(m)   = RhoCp_air;     % Heat capacity
         Kappam(m)   = Kappa_air;     % Thermal conductivity
         Hrm(m)      = Hr_air;        % Radiogenic heating
+        Mtype(m)    = 2;             % marker type; 2 = air;
     end
     % Update marker counter
     m=m+1;
