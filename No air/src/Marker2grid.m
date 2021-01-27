@@ -29,20 +29,20 @@ MARKSUMp        = zeros(nz1,nx1);
 
 % loop through each marker
 for m = 1:1:marknum    
-    %% ordinary grid   
+    %% edge point grid   
     % Define i,j indexes for the upper left node
     j           = fix((xm(m)-x(1))/dx)+1;
     i           = fix((zm(m)-z(1))/dz)+1;
     % make sure markers are within the grid
     if(j<1)
         j=1;
-    elseif(j>nx-1)
-        j=nx-1;
+    elseif(j>nx+1)
+        j=nx+1;
     end
     if(i<1)
         i=1;
-    elseif(i>nz-1)
-        i=nz-1;
+    elseif(i>nz+1)
+        i=nz+1;
     end
     
     %distance between nodes and markers
@@ -74,13 +74,13 @@ for m = 1:1:marknum
     %make sure markers are within grid
     if(j<1)
         j=1;
-    elseif(j>nx-1)
-        j=nx-1;
+    elseif(j>nx1-1)
+        j=nx1-1;
     end
     if(i<1)
         i=1;
-    elseif(i>nz)
-        i=nz;
+    elseif(i>nz1)
+        i=nz1;
     end
     %compute distances
     dxm1        = abs(xm(m)-xvx(j));
@@ -119,13 +119,13 @@ for m = 1:1:marknum
     %make sure markers are within grid
     if(j<1)
         j=1;
-    elseif(j>nx)
-        j=nx;
+    elseif(j>nx1)
+        j=nx1;
     end
     if(i<1)
         i=1;
-    elseif(i>nz-1)
-        i=nz-1;
+    elseif(i>nz+1)
+        i=nz+1;
     end
     %compute distances
     dxm1        = abs(xm(m)-xvz(j));

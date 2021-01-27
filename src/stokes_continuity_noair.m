@@ -8,8 +8,8 @@ NW      = Nx*Nz; % total number of vz nodes to solve + ghost nodes
 N_all   = NP+NU+NW;
 
 %indexing of unknowns
-indvx   = reshape(1:NU,Nz,Nx);
-indvz   = reshape(1:NW,Nz,Nx) + NU;
+indvx   = reshape(1:2:(NU+NW),Nz,Nx);
+indvz   = reshape(2:2:(NU+NW),Nz,Nx);
 indP    = reshape(1:NP,Nz,Nx) + NU + NW;
 
 % setup A matrix and RHS vector
