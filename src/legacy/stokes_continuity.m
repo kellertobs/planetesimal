@@ -1,28 +1,23 @@
-function [P_out,vx_out,vz_out,vx_mid,vz_mid] = stokes_continuity(nx,nz,Nx,Nz,...
+function [P_out,vx_out,vz_out,vx_mid,vz_mid] = stokes_continuity(nx,nz,nx1,nz1,...
     indvx,indvz,indP,dx,dz,Pscale,...
     Eta_out,Eta_mid,Rho_vx,Rho_vz,gx,gz,dt,bctop,bcbottom,bcleft,bcright)
 
-NP      = Nx*Nz; % total number of P nodes to solve + ghost nodes
-NU      = Nx*Nz; % total number of vx nodes to solve + ghost nodes
-NW      = Nx*Nz; % total number of vz nodes to solve + ghost nodes
-N_all   = NP+NU+NW;
-
-%indexing of unknowns
-indvx   = reshape(1:NU,Nz,Nx);
-indVz   = reshape(1:NW,Nz,Nx) + NU;
-indP    = reshape(1:NP,Nz,Nx) + NU + NW;
-
-% setup A matrix and RHS vector
-A       = sparse(N_all,N_all);
-RHS     = zeros(1,N_all);
-
-for j = 1:1:Nx
-for i = 1:1:Nz
+N = nx1*nz1; %total number of unknowns to solve (vx,vz,P for each node)
+%We solve implicitly in the form A*c = RHS, where c is the solution
+%implemented a sticky air solver on the vz grid
+A1      = sparse(N,N);
+A2      = sparse(N,N);
+A3      = sparse(N,N);
+RHS1    = zeros(N,1);
+RHS2    = zeros(N,1);
+RHS3    = zeros(N,1);
+for j = 1:1:nx1
+for i = 1:1:nz1
     %% x-Stokes eq. ETA*(d2Vx/dx^2+d2Vx/dy^2)-dP/dx=0
     % solve x equation
     
     % boundary conditions of vx
-    if(i==1 || i==Nz || j==1 || j==nx || j==Nx)
+    if(i==1 || i==nz1 || j==1 || j==nx || j==nx1)
             A(indvx(i,j),indvx(i,j))    = 1; % A matrix coefficient
             RHS(indvx(i,j))             = 0; % RHS
         %Top boundary
@@ -30,7 +25,7 @@ for i = 1:1:Nz
             A(indvx(i,j),indvx(i+1,j))  = bctop; %only solve for the bottom of the top boundary
         end
         %Bottom boundary    
-        if (i==Nz && j>1 && j<nx)
+        if (i==nz1 && j>1 && j<nx)
             A(indvx(i,j),indvx(i-1,j))  = bcbottom; % above the bottom boundary
         end
     % now solve internal points on the real grid
@@ -65,7 +60,7 @@ for i = 1:1:Nz
     %% z-Stokes eq. ETA*(d2Vy/dx^2+d2Vy/dy^2)-dP/dy=-RHO*gy
     % solve z equation
     % boundary conditions of vz
-    if(j==1 || j==Nx || i==1 || i==nz || i==Nz)
+    if(j==1 || j==nx1 || i==1 || i==nz || i==nz1)
             A(indvz(i,j),indvz(i,j))    = 1;        % A matrix coefficient
             RHS(indvz(i,j))             = 0;        % RHS
         %left boundary
@@ -73,7 +68,7 @@ for i = 1:1:Nz
             A(indvz(i,j),indvz(i,j+1))  = bcleft;   %solve for right of the leftmost bodes
         end
         %right boundary    
-        if (j==Nx && i>1 && i<nz)
+        if (j==nx1 && i>1 && i<nz)
             A(indvz(i,j),indvz(i,j-1))  = bcright;  % above the bottom boundary
         end
     % solve internal points    
@@ -108,7 +103,7 @@ for i = 1:1:Nz
     %% P-Stokes eq. dVx/dx+dVy/dy=0
     % boundary points
     % P equation External points
-    if(i==1 || j==1 || i==Nz || j==Nx ||...
+    if(i==1 || j==1 || i==nz1 || j==nx1 ||...
             (i==2 && j==2))
         % Boundary Condition
         % 1*P=0
@@ -136,8 +131,8 @@ end
 %% Solve stokes matrix and convert output vector to matrices
 c = A\RHS; %get solution vector
 %extrapolate into individual matrices
-for j = 1:1:Nx
-for i = 1:1:Nz
+for j = 1:1:nx1
+for i = 1:1:nz1
     
     P_out(i,j)  = c(indP(i,j))*Pscale;  %output pressure
     vx_out(i,j) = c(indvx(i,j));        %output vx
@@ -147,8 +142,8 @@ end
 end
 
     % averaging velocities on centre nodes
-    vx_mid = zeros(Nz,Nx);
-    vz_mid = zeros(Nz,Nx);    
+    vx_mid = zeros(nz1,nx1);
+    vz_mid = zeros(nz1,nx1);    
     
     for j = 2:1:nx %solve for ordinary nodes only
     for i = 2:1:nz
@@ -161,12 +156,12 @@ end
     vx_mid(1,2:nx-1)    = -bctop*vx_mid(2,2:nx-1);
     vz_mid(1,:)         = -vz_mid(2,:);
     %bottom
-    vx_mid(Nz,2:nx-1)  = -bcbottom*vx_mid(nz,2:nx-1);
-    vz_mid(Nz,:)       = -vz_mid(nz,:);
+    vx_mid(nz1,2:nx-1)  = -bcbottom*vx_mid(nz,2:nx-1);
+    vz_mid(nz1,:)       = -vz_mid(nz,:);
     %left
     vx_mid(:,1)         = -vx_mid(:,2);
     vz_mid(2:nz-1,1)    = -bcleft*vz_mid(2:nz-1,2);
     %right
-    vx_mid(:,Nx)       =-vx_mid(:,nx);
-    vz_mid(2:nz-1,Nx)  =-bcright*vz_mid(2:nz-1,nx); % Free slip
+    vx_mid(:,nx1)       =-vx_mid(:,nx);
+    vz_mid(2:nz-1,nx1)  =-bcright*vz_mid(2:nz-1,nx); % Free slip
 

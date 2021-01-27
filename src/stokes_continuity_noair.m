@@ -1,5 +1,5 @@
-function [P_out,vx_out,vz_out,vx_mid,vz_mid] = stokes_continuity(nx,nz,Nx,Nz,...
-    indvx,indvz,indP,dx,dz,Pscale,...
+function [P_out,vx_out,vz_out,vx_mid,vz_mid] = stokes_continuity_noair(nx,nz,Nx,Nz,...
+    dx,dz,Pscale,...
     Eta_out,Eta_mid,Rho_vx,Rho_vz,gx,gz,dt,bctop,bcbottom,bcleft,bcright)
 
 NP      = Nx*Nz; % total number of P nodes to solve + ghost nodes
@@ -9,12 +9,12 @@ N_all   = NP+NU+NW;
 
 %indexing of unknowns
 indvx   = reshape(1:NU,Nz,Nx);
-indVz   = reshape(1:NW,Nz,Nx) + NU;
+indvz   = reshape(1:NW,Nz,Nx) + NU;
 indP    = reshape(1:NP,Nz,Nx) + NU + NW;
 
 % setup A matrix and RHS vector
 A       = sparse(N_all,N_all);
-RHS     = zeros(1,N_all);
+RHS     = zeros(N_all,1);
 
 for j = 1:1:Nx
 for i = 1:1:Nz
@@ -40,22 +40,18 @@ for i = 1:1:Nz
     Eta2    = Eta_out(i,j);
     EtaP1   = Eta_mid(i,j);
     EtaP2   = Eta_mid(i,j+1);
-    drhodx  = (Rho_vx(i,j+1) - Rho_vx(i,j-1))/2/dx;
-    drhodz  = (Rho_vx(i+1,j) - Rho_vx(i-1,j))/2/dz;
-    
     
     A(indvx(i,j),indvx(i,j-1))      = 2*EtaP1/dx^2;                 % vx left of current node
     A(indvx(i,j),indvx(i-1,j))      = Eta1/dz^2;                    % vx  above current node
     A(indvx(i,j),indvx(i,j))        = -2*(EtaP1+EtaP2)/dx^2-...
-                                        (Eta1+Eta2)/dz^2 -...
-                                        drhodx*gx*dt;               % vx current node
+                                        (Eta1+Eta2)/dz^2;           % vx current node
     A(indvx(i,j),indvx(i+1,j))      = Eta2/dz^2;                    % vx below current node
     A(indvx(i,j),indvx(i,j+1))      = 2*EtaP2/dx^2;                 % vx right of current node
     
-    A(indvx(i,j),indvz(i,j))        = -Eta2/dx/dz   -drhodz*gx*dt;  % vz bottomleft
-    A(indvx(i,j),indvz(i,j+1))      = Eta2/dx/dz    -drhodz*gx*dt;  % vz bottomright      
-    A(indvx(i,j),indvz(i-1,j))      = Eta1/dx/dz    -drhodz*gx*dt;  % vz topleft
-    A(indvx(i,j),indvz(i-1,j+1))    = -Eta1/dx/dz   -drhodz*gx*dt;  % vz topright     
+    A(indvx(i,j),indvz(i,j))        = -Eta2/dx/dz;                  % vz bottomleft
+    A(indvx(i,j),indvz(i,j+1))      = Eta2/dx/dz;                   % vz bottomright      
+    A(indvx(i,j),indvz(i-1,j))      = Eta1/dx/dz;                   % vz topleft
+    A(indvx(i,j),indvz(i-1,j+1))    = -Eta1/dx/dz;                  % vz topright     
     A(indvx(i,j),indP(i,j))         = Pscale/dx;                    % P1; current node
     A(indvx(i,j),indP(i,j+1))       = -Pscale/dx;                   % P2; right of current node
     % RHS
@@ -83,21 +79,18 @@ for i = 1:1:Nz
         Eta2    = Eta_out(i,j);
         EtaP1   = Eta_mid(i,j);
         EtaP2   = Eta_mid(i+1,j);
-        drhodx  = (Rho_vz(i,j+1) - Rho_vz(i,j-1))/2/dx;
-        drhodz  = (Rho_vz(i+1,j) - Rho_vz(i-1,j))/2/dz;
         
     % A matrix coefficients
     A(indvz(i,j),indvz(i,j-1))      = Eta1/dx^2;                    % vx1 left of current node
     A(indvz(i,j),indvz(i-1,j))      = 2*EtaP1/dz^2;                 % vx2 above current node
     A(indvz(i,j),indvz(i,j))        = -2*(EtaP1+EtaP2)/dz^2-...
-                                        (Eta1+Eta2)/dx^2-...
-                                        drhodz*gz*dt;               % vx3 current node
+                                        (Eta1+Eta2)/dx^2;           % vx3 current node
     A(indvz(i,j),indvz(i+1,j))      = 2*EtaP2/(dz^2);               % vx4 below current node
     A(indvz(i,j),indvz(i,j+1))      = Eta2/(dx^2);                  % vx5 right of current node
-    A(indvz(i,j),indvx(i,j))        = -Eta2/dx/dz   -drhodx*gz*dt/4;% topright
-    A(indvz(i,j),indvx(i+1,j))      = Eta2/dx/dz    -drhodx*gz*dt/4;% bottomright
-    A(indvz(i,j),indvx(i,j-1))      = Eta1/dx/dz    -drhodx*gz*dt/4;% topleft
-    A(indvz(i,j),indvx(i+1,j-1))    = -Eta1/dx/dz   -drhodx*gz*dt/4;% bottomleft
+    A(indvz(i,j),indvx(i,j))        = -Eta2/dx/dz;                  % topright
+    A(indvz(i,j),indvx(i+1,j))      = Eta2/dx/dz;                   % bottomright
+    A(indvz(i,j),indvx(i,j-1))      = Eta1/dx/dz;                   % topleft
+    A(indvz(i,j),indvx(i+1,j-1))    = -Eta1/dx/dz;                  % bottomleft
     
     A(indvz(i,j),indP(i,j))         = Pscale/dz;                    %P1; current node
     A(indvz(i,j),indP(i+1,j))       = -Pscale/dz;                   %P2; bottom of current node
@@ -126,6 +119,8 @@ for i = 1:1:Nz
     A(indP(i,j),indvx(i,j))         = 1/dx;     % current node
     A(indP(i,j),indvz(i-1,j))       = -1/dz;    % above current node
     A(indP(i,j),indvz(i,j))         = 1/dz;     % below current node
+    
+    A(indP(i,j),indP(i,j))          = dx*dz/Eta_mid(i,j);
     
     % RHS
     RHS(indP(i,j)) = 0;
