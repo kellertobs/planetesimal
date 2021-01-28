@@ -1,30 +1,29 @@
 function [Eta_out,Eta_mid,k_vz,k_vx,RhoCp_mid,T_mid,Alpha_mid,Hr,Material,Alpha_vx,Alpha_vz,T_vx,T_vz]...
-    = Marker2grid(marknum,nx,nx1,nz,nz1,dx,dz,xm,zm,...
-    x,z,xvx,zvx,xvz,zvz,xp,zp,...
-    Etam,Kappam,Tm,RhoCpm,Alpham,Hrm,Mtype)
+    = Marker2grid(marknum,nx,nx1,Nx,nz,nz1,Nz,dx,dz,xm,zm,...
+    x,z,xvx,zvx,xvz,zvz,xp,zp,Etam,Kappam,Tm,RhoCpm,Alpham,Hrm,Mtype)
 
 %% create arrays
 %ordinary nodes
-ETASUM          = zeros(nz1,nx1); % viscosity         
-WTSUM           = zeros(nz1,nx1); % weighted average
+ETASUM          = zeros(Nz,Nx); % viscosity         
+WTSUM           = zeros(Nz,Nx); % weighted average
 % vz grid
-KSUMvz          = zeros(nz1,nx1); % Thermal conductivity
-ASUMvz          = zeros(nz1,nx1);% Thermal expansion
-WTSUMvz         = zeros(nz1,nx1); % weighted average
-TSUMvz          = zeros(nz1,nx1);
+KSUMvz          = zeros(Nz,Nx); % Thermal conductivity
+ASUMvz          = zeros(Nz,Nx);% Thermal expansion
+WTSUMvz         = zeros(Nz,Nx); % weighted average
+TSUMvz          = zeros(Nz,Nx);
 %vx grid
-KSUMvx          = zeros(nz1,nx1); % Thermal conductivity
-ASUMvx          = zeros(nz1,nx1);% Thermal expansion
-WTSUMvx         = zeros(nz1,nx1); % weighted average
-TSUMvx          = zeros(nz1,nx1); 
+KSUMvx          = zeros(Nz,Nx); % Thermal conductivity
+ASUMvx          = zeros(Nz,Nx);% Thermal expansion
+WTSUMvx         = zeros(Nz,Nx); % weighted average
+TSUMvx          = zeros(Nz,Nx); 
 %Pgrid/middle of blocks grid
-TSUMp           = zeros(nz1,nx1); % Temperature
-RHOCPSUMp       = zeros(nz1,nx1); % Heat capacity
-ETASUMp         = zeros(nz1,nx1); % Viscosity
-ASUMp           = zeros(nz1,nx1); % Thermal expansion
-HRSUMp          = zeros(nz1,nx1); % Radiogenic heating
-WTSUMp          = zeros(nz1,nx1); % weighted average
-MARKSUMp        = zeros(nz1,nx1);
+TSUMp           = zeros(Nz,Nx); % Temperature
+RHOCPSUMp       = zeros(Nz,Nx); % Heat capacity
+ETASUMp         = zeros(Nz,Nx); % Viscosity
+ASUMp           = zeros(Nz,Nx); % Thermal expansion
+HRSUMp          = zeros(Nz,Nx); % Radiogenic heating
+WTSUMp          = zeros(Nz,Nx); % weighted average
+MARKSUMp        = zeros(Nz,Nx);
 
 
 % loop through each marker
@@ -36,13 +35,13 @@ for m = 1:1:marknum
     % make sure markers are within the grid
     if(j<1)
         j=1;
-    elseif(j>nx+1)
-        j=nx+1;
+    elseif(j>nx1)
+        j=nx1;
     end
     if(i<1)
         i=1;
-    elseif(i>nz+1)
-        i=nz+1;
+    elseif(i>nz1)
+        i=nz1;
     end
     
     %distance between nodes and markers
@@ -74,13 +73,13 @@ for m = 1:1:marknum
     %make sure markers are within grid
     if(j<1)
         j=1;
-    elseif(j>nx1-1)
-        j=nx1-1;
+    elseif(j>nx1)
+        j=nx1;
     end
     if(i<1)
         i=1;
-    elseif(i>nz1)
-        i=nz1;
+    elseif(i>Nz)
+        i=Nz;
     end
     %compute distances
     dxm1        = abs(xm(m)-xvx(j));
@@ -105,10 +104,10 @@ for m = 1:1:marknum
     KSUMvx(i+1,j)     = KSUMvx(i+1,j)       + Kappam(m)*wti1j;
     ASUMvx(i+1,j)     = ASUMvx(i+1,j)       + Alpham(m)*wti1j;
     WTSUMvx(i+1,j)    = WTSUMvx(i+1,j)      + wti1j;
-    tSUMvx(i+1,j)     = TSUMvx(i+1,j)       + Tm(m)*wti1j;
+    TSUMvx(i+1,j)     = TSUMvx(i+1,j)       + Tm(m)*wti1j;
     % [i+1,j+1]
     KSUMvx(i+1,j+1)   = KSUMvx(i+1,j+1)     + Kappam(m)*wti1j1;
-    ASUMvz(i+1,j+1)   = ASUMvz(i+1,j+1)     + Alpham(m)*wti1j1;
+    ASUMvx(i+1,j+1)   = ASUMvx(i+1,j+1)     + Alpham(m)*wti1j1;
     WTSUMvx(i+1,j+1)  = WTSUMvx(i+1,j+1)    + wti1j1;
     TSUMvx(i+1,j+1)   = TSUMvx(i+1,j+1)     + Tm(m)*wti1j1;
     
@@ -119,13 +118,13 @@ for m = 1:1:marknum
     %make sure markers are within grid
     if(j<1)
         j=1;
-    elseif(j>nx1)
-        j=nx1;
+    elseif(j>Nx)
+        j=Nx;
     end
     if(i<1)
         i=1;
-    elseif(i>nz+1)
-        i=nz+1;
+    elseif(i>nz1)
+        i=nz1;
     end
     %compute distances
     dxm1        = abs(xm(m)-xvz(j));
@@ -162,15 +161,17 @@ for m = 1:1:marknum
     j           = fix((xm(m)-xp(1))/dx)+1;
     i           = fix((zm(m)-zp(1))/dz)+1;
     %make sure markers are within grid
-    if(j<1)
-        j=1;
-    elseif(j>nx)
-        j=nx;
+    if(j<2)
+        j=2;
     end
-    if(i<1)
-        i=1;
-    elseif(i>nz)
-        i=nz;
+    if(j>nx1)
+        j=nx1;
+    end
+    if(i<2)
+        i=2;
+    end
+    if(i>nz1)
+        i=nz1;
     end
     %compute distances
     dxm1        = abs(xm(m)-xp(j));

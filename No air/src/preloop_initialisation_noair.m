@@ -58,8 +58,8 @@ end
 end
 
 %% initialise arrays
-Epsxz           = zeros(nz+1,nx+1);     % strain rate on the ordinary grid
-Sigxz           = zeros(nz+1,nx+1);     % deviatoric stress on the ordinary grid
+Epsxz           = zeros(Nz,Nx);     % strain rate on the ordinary grid
+Sigxz           = zeros(Nz,Nx);     % deviatoric stress on the ordinary grid
 Epsxx           = Epsxz;            % strain rate in 
 Sigxx           = Sigxz;            % deviatoric stress the middle of grid/pressure nodes
 Hs              = Sigxx;            % shear heating, on the pressure nodes

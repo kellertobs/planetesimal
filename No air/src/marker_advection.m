@@ -1,4 +1,4 @@
-function [xm,zm] = marker_advection(marknum,xm,zm,nx,nz,dx,dz,xvx,zvx,xvz,zvz,xp,zp,...
+function [xm,zm] = marker_advection(marknum,xm,zm,Nx,Nz,dx,dz,xvx,zvx,xvz,zvz,xp,zp,...
     vx_out,vz_out,vx_mid,vz_mid,vpratio,dt)
 %advect the marker coordinates. Eq. 8.19
     % interpolate grid velocities into markers
@@ -13,13 +13,13 @@ function [xm,zm] = marker_advection(marknum,xm,zm,nx,nz,dx,dz,xvx,zvx,xvz,zvz,xp
         i       = fix((zmRK-zp(1))/dz)+1;
         if(j<1)
             j=1;
-        elseif(j>nx)
-            j=nx;
+        elseif(j>Nx)
+            j=Nx;
         end
         if(i<1)
             i=1;
-        elseif(i>nz)
-            i=nz;
+        elseif(i>Nz)
+            i=Nz;
         end
         %compute distances
         dxm1    = abs(xmRK-xp(j));
@@ -41,13 +41,13 @@ function [xm,zm] = marker_advection(marknum,xm,zm,nx,nz,dx,dz,xvx,zvx,xvz,zvz,xp
         i=fix((zmRK-zvx(1))/dz)+1;
         if(j<1)
             j=1;
-        elseif(j>nx-1)
-            j=nx-1;
+        elseif(j>Nx-1)
+            j=Nx-1;
         end
         if(i<1)
             i=1;
-        elseif(i>nz)
-            i=nz;
+        elseif(i>Nz)
+            i=Nz;
         end
         %calculate distances
         dxm1    = xmRK-xvx(j);
@@ -68,13 +68,13 @@ function [xm,zm] = marker_advection(marknum,xm,zm,nx,nz,dx,dz,xvx,zvx,xvz,zvz,xp
         i       = fix((zmRK-zvz(1))/dz)+1;
         if(j<1)
             j=1;
-        elseif(j>nx)
-            j=nx;
+        elseif(j>Nx)
+            j=Nx;
         end
         if(i<1)
             i=1;
-        elseif(i>nz-1)
-            i=nz-1;
+        elseif(i>Nz-1)
+            i=Nz-1;
         end
         %calculate distances
         dxm1    = xmRK-xvz(j);

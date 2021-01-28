@@ -1,4 +1,4 @@
-function Tm = Update_T_markers(Tm,T_diff,dT,marknum,nx,nz,dx,dz,xm,zm,xp,zp,ti)
+function Tm = Update_T_markers(Tm,T_diff,dT,marknum,nx1,nz1,dx,dz,xm,zm,xp,zp,ti)
 
 for m = 1:1:marknum
     % define i,j indeces for upper-left node
@@ -6,13 +6,13 @@ for m = 1:1:marknum
     i=fix((zm(m)-zp(1))/dz)+1;
     if(j<1)
         j   =1;
-    elseif(j>nx)
-        j   =nx;
+    elseif(j>nx1)
+        j   =nx1;
     end
     if(i<1)
         i   =1;
-    elseif(i>nz)
-        i   =nz;
+    elseif(i>nz1)
+        i   =nz1;
     end
     
     % compute distances

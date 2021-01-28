@@ -1,8 +1,8 @@
-function dT = dTsubgrid(nx,nz,nx1,nz1,xp,zp,dx,dz,xm,zm,...
+function dT = dTsubgrid(nx1,nz1,Nx,Nz,xp,zp,dx,dz,xm,zm,...
     dsubgridt,T_mid,dT,Tm,dt,marknum,...
     RhoCpm,Kappam)
-TSUM        =zeros(nz1,nx1);
-RHOCPSUM    =zeros(nz1,nx1);
+TSUM        =zeros(Nz,Nx);
+RHOCPSUM    =zeros(Nz,Nx);
 
 for m = 1:1:marknum
     % Define i,j indexes for the upper left node
@@ -10,13 +10,13 @@ for m = 1:1:marknum
     i       = fix((zm(m)-zp(1))/dz)+1;
     if(j<1)
         j   = 1;
-    elseif(j>nx)
-        j   = nx;
+    elseif(j>nx1)
+        j   = nx1;
     end
     if(i<1)
         i   = 1;
-    elseif(i>nz)
-        i   = nz;
+    elseif(i>nz1)
+        i   = nz1;
     end
     % Compute distances
     dxm1    = xm(m) - xp(j);
@@ -49,10 +49,10 @@ for m = 1:1:marknum
     RHOCPSUM(i+1,j+1)   = RHOCPSUM(i+1,j+1) + RhoCpm(m)*wtmi1j1;
 end
 % Compute DTsubgrid
-dTsubgrid   = zeros(nz1,nx1);
+dTsubgrid   = zeros(Nz,Nx);
 % P-nodes
-for j=1:1:nx1
-for i=1:1:nz1
+for j=1:1:Nx
+for i=1:1:Nz
     if(RHOCPSUM(i,j)>0)
         dTsubgrid(i,j)  = TSUM(i,j)/RHOCPSUM(i,j);
     end
