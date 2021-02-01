@@ -8,13 +8,13 @@ for m = 1:1:marknum
     % Define i,j indexes for the upper left node
     j       = fix((xm(m)-xp(1))/dx)+1;
     i       = fix((zm(m)-zp(1))/dz)+1;
-    if(j<1)
-        j   = 1;
+    if(j<2)
+        j   = 2;
     elseif(j>nx1)
         j   = nx1;
     end
-    if(i<1)
-        i   = 1;
+    if(i<2)
+        i   = 2;
     elseif(i>nz1)
         i   = nz1;
     end

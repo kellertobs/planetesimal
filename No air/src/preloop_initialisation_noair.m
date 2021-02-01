@@ -33,7 +33,9 @@ for im=1:1:nzm_all
     RhoCpm(m)   = RhoCp_mantle;  % Heat capacity
     Kappam(m)   = Kappa_mantle;  % Thermal conductivity
     Hrm(m)      = Hr_mantle;     % Radiogenic heating
-    if zm(m)>D*0.9
+    if zm(m)>D*0.95
+        Mtype(m) = 2;
+    elseif zm(m)>D*0.9
         Mtype(m) = 1;
     elseif zm(m)>D*0.8
         Mtype(m) = 2;

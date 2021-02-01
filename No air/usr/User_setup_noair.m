@@ -38,8 +38,8 @@ Rho0        = Rho_mantle; %baseline density = minimum density
 
 %% setup grid parameters
 % markers per grid block = nxm x nzm
-nxm             = 5;                % number of x markers within each block
-nzm             = 5;                % number of z markers within each block
+nxm             = 6;                % number of x markers within each block
+nzm             = 6;                % number of z markers within each block
 dxm             = dx/nxm;           % average spacing between each x marker
 dzm             = dz/nzm;           % average spacing between each z marker
 nxm_all         = nxm*nx;           % total number of x markers in x vector
@@ -60,7 +60,7 @@ nt              = 200;      % number of loop iterations
 vpratio         = 1/3;      % Weight of averaged velocity for moving markers
 dt              = 1e10;     % initial time-stepping (variable within code)
 dtkoef          = 1.2;      % timestep increment
-dxzmax          = 1;        % maximum advected movement
+dxzmax          = 0.5;        % maximum advected movement
 dTmax           = 50;       % maximum temperature increase
-dsubgridt       = 1;        % subgrid for temperature advection, 1=with, 0=without
+dsubgridt       = 0;        % subgrid for temperature advection, 1=with, 0=without
 Restol          = 1e-3;     %residual tolerance

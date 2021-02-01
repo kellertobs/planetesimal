@@ -11,33 +11,6 @@ for ti = 1:nt
     = Marker2grid(marknum,nx,nx1,Nx,nz,nz1,Nz,dx,dz,xm,zm,...
     x,z,xvx,zvx,xvz,zvz,xp,zp,Etam,Kappam,Tm,RhoCpm,Alpham,Hrm,Mtype);
     
-%     subplot(2,2,1)
-%     pcolor(xvx,zvx,k_vx(1:Nz,1:nx1))
-%     axis ij image;
-%     shading interp; 
-%     colorbar
-%     title('map of k_v_x')
-%     
-%     subplot(2,2,2)
-%     pcolor(xvx,zvx,Alpha_vx(1:Nz,1:nx1))
-%     axis ij image;
-%     shading interp; 
-%     colorbar
-%     title('map of Alpha_v_x')
-%     
-%     subplot(2,2,3)
-%     pcolor(xvz,zvz,k_vz(1:nz1,1:Nx))
-%     axis ij image;
-%     shading interp; 
-%     colorbar
-%     title('map of k_v_z')
-%     
-%     subplot(2,2,4)
-%     pcolor(xvz,zvz,Alpha_vz(1:nz1,1:Nx))
-%     axis ij image;
-%     shading interp; 
-%     colorbar
-%     title('map of Alpha_v_z')
 
     % Apply thermal boundary condition to interpolated nodes
     % upper boundary, constant temperature 
@@ -59,7 +32,7 @@ for ti = 1:nt
     % plume beneath lithosphere
     midx = fix(L/2);
     indexP = find(abs(xp(1,:)) <= midx+ (L*0.2) & abs(xp(1,:)) >= midx - (L*0.2));
-    T_mid(nz:Nz,indexP) = T_bot+300;
+    T_mid(nz1:Nz,indexP) = T_bot+300;
     indexvx = find(abs(xvx(1,:)) <= midx+ (L*0.2) & abs(xvx(1,:)) >= midx - (L*0.2));
     T_vx(nz:Nz,indexvx) = T_bot+300;
     indexvz = find(abs(xvz(1,:)) <= midx+ (L*0.2) & abs(xvz(1,:)) >= midx - (L*0.2));
@@ -68,8 +41,7 @@ for ti = 1:nt
     [Rho_vx,Rho_vz,Rho_mid] = Thermal_expansion(Rho0,...
     T_mid,T_vx,T_vz,Alpha_vx,Alpha_vz,Alpha_mid,T_top);    
 
-%     Resnorm = 1e3;
-%     while Resnorm > Restol
+    % ignore nonlinearity for the time being
         % % =============================================================
         % % Solve momentum and continuity equations
         % % =============================================================
@@ -89,6 +61,8 @@ for ti = 1:nt
             dt  = dxzmax*dz/maxvz;
         end
         
+        dt
+        
     % % =============================================================
     % % Update eulerian temperature, correct dt for maximum temperature
     % % =============================================================
@@ -96,20 +70,50 @@ for ti = 1:nt
     Update_Temperature(Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,nx1,nz1,dx,dz,...
     vx_out,vz_out,Eta_out,Eta_mid,Rho_vz,Alpha_mid,T_mid,gz,...
     Nx,Nz,k_vx,k_vz,RhoCp_mid,Hr,Number,T_top,dt,dTmax);
-%     end
-    
-    dT1 = T_diff-T_mid;
-    % apply dT subgrid correction    
-    if(dsubgridt>0)
-    dT = dTsubgrid(nx1,nz1,Nx,Nz,xp,zp,dx,dz,xm,zm,...
-    dsubgridt,T_mid,dT,Tm,dt,marknum,...
-    RhoCpm,Kappam);
+
+    % temporary temperature marker update, the Gerya temperature correction
+    % seems to be slightly broken
+    for m = 1:1:marknum
+    % define i,j indeces for upper-left node
+    j=fix((xm(m)-xp(1))/dx)+1;
+    i=fix((zm(m)-zp(1))/dz)+1;
+    if(j<2)
+        j   =2;
+    elseif(j>nx1)
+        j   =nx1;
+    end
+    if(i<2)
+        i   =2;
+    elseif(i>nz1)
+        i   =nz1;
     end
     
-    % Update markers
+    % compute distances
+    dxm1    = xm(m) - xp(j);
+    dzm1    = zm(m) - zp(i);
     
-    % update temperature markers
-    Tm = Update_T_markers(Tm,T_diff,dT,marknum,nx1,nz1,dx,dz,xm,zm,xp,zp,ti);
+    % compute weights
+    wtij    = (1 - dxm1/dx) * (1 - dzm1/dz);    % topleft node
+    wtij1   =      dxm1/dx  * (1 - dzm1/dz);    % topright node
+    wti1j   = (1 - dxm1/dx) *      dzm1/dz ;    % bottomleft node
+    wti1j1  =      dxm1/dx  *      dzm1/dz;     % bottomright node
+    
+    Tm(m)   =   T_diff(i,j)*wtij    + T_diff(i+1,j)*wti1j +...
+                    T_diff(i,j+1)*wtij1 + T_diff(i+1,j+1)*wti1j1; 
+    end
+
+%     dT1 = T_diff-T_mid;
+%     % apply dT subgrid correction    
+%     if(dsubgridt>0)
+%     dT = dTsubgrid(nx1,nz1,Nx,Nz,xp,zp,dx,dz,xm,zm,...
+%     dsubgridt,T_mid,dT,Tm,dt,marknum,...
+%     RhoCpm,Kappam);
+%     end
+%     
+%     % Update markers
+%     
+%     % update temperature markers
+%     Tm = Update_T_markers(Tm,T_diff,dT,marknum,nx1,nz1,dx,dz,xm,zm,xp,zp,ti);
     
     % advect markers by velocity
     [xm,zm] = marker_advection(marknum,xm,zm,nx1,nz1,dx,dz,xvx,zvx,xvz,zvz,xp,zp,...
@@ -162,7 +166,12 @@ for ti = 1:nt
     pcolor(xp(2:end-1),zp(2:end-1),Ha(2:end-1,2:end-1));axis ij image;shading interp, colorbar
     title('Adiabatic heat distribution')
     
+    figure(3)
+    plot(time,dt,'*')
+    xlabel('cumulative time')
+    ylabel('dt')
+    hold on
 
-    
+    time = dt+time;
 end
 

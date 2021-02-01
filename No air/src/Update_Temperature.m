@@ -25,7 +25,6 @@ for j = 2:1:nx1
 for i = 2:1:nz1
     Hxz(i,j)         = (Epsxz(i-1,j-1)*Sigxz(i-1,j-1)    + Epsxz(i-1,j)*Sigxz(i-1,j) +...
                    Epsxz(i-1,j)*Sigxz(i-1,j)        + Epsxz(i,j)*Sigxz(i,j))/4; %average of xz products
-               Hxz(i,j)
     Hs(i,j)     = 2*Hxz(i,j) + 2*Epsxx(i,j)*Sigxx(i,j); %shear heating
     % now compute adiabatic heating
     Ha(i,j)     = (vz_out(i,j) + vz_out(i-1,j))/2 * (Rho_vz(i,j) + Rho_vz(i-1,j))/2 ...
