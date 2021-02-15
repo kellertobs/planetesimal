@@ -1,8 +1,8 @@
 % Update Temperature
-function [Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,T_diff,dT] =...
+function [Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,T_diff,dT,dt] =...
     Update_Temperature(Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,nx1,nz1,dx,dz,...
     vx_out,vz_out,Eta_out,Eta_mid,Rho_vz,Alpha_mid,T_mid,gz,...
-    Nx,Nz,k_vx,k_vz,Rho_mid,Cp_mid,Hr,T_top,dt)
+    Nx,Nz,k_vx,k_vz,RhoCp_mid,Hr,Number,T_top,dt,dTmax)
 
 Hxz = Sigxx;
 %% calculate stresses and shear/adiabatic heating
@@ -41,6 +41,7 @@ A           = sparse(Nz*Nx,Nz*Nx);
 RHS         = zeros(Nz*Nx,1);
 
 
+for titer=1:1:2
 %% fill implicit matrices
 for i = 1:1:Nz
 for j = 1:1:Nx    
@@ -73,30 +74,23 @@ for j = 1:1:Nx
     else   
     % internal points
     % fill A matrix
-    RhoCp_mid = Rho_mid(i,j)*Cp_mid(i,j);
     A(ind(i,j),ind(i,j-1))      = -k_vx(i,j-1)/dx^2;     % left of current node
     A(ind(i,j),ind(i,j+1))      = -k_vx(i,j)  /dx^2;     % right of current node
     A(ind(i,j),ind(i-1,j))      = -k_vz(i-1,j)/dz^2;     % above current node
     A(ind(i,j),ind(i+1,j))      = -k_vz(i,j)  /dz^2;     % below current node
-    A(ind(i,j),ind(i,j))        = (RhoCp_mid/dt) + ...
+    A(ind(i,j),ind(i,j))        = (RhoCp_mid(i,j)/dt) + ...
                                 ((k_vx(i,j) + k_vx(i,j-1))/dx^2) + ...
                                 ((k_vz(i,j) + k_vz(i-1,j))/dz^2); %current node
                             
     % fill RHS vector
     RHS(ind(i,j))               = (Hs(i,j) + Ha(i,j) + Hr(i,j)) +...
-                                   RhoCp_mid*T_mid(i,j)/dt;
+                                   RhoCp_mid(i,j)*T_mid(i,j)/dt;
     end
 end
 end
 
-X           =  sqrt(abs(diag(A)));
-X           =  diag(sparse(1./X));
-
-A           =  X*A*X;
-RHS         =  X*RHS;
-
 %% output T grid
-Tvec = X*(A\RHS); % backslash operator to output diffused temperature vector
+Tvec = A\RHS; % backslash operator to output diffused temperature vector
 for j=1:1:Nx
 for i=1:1:Nz    
     % Reload solution
@@ -109,12 +103,13 @@ dT          = T_diff-T_mid;
 
 % thermal timestepping conditions
 maxdT       = max(max(abs(dT)));
-% if titer<2 && maxdT>dTmax
-%     dt      = dt/maxdT*dTmax;
-% else
-%     break
-% end
-
+if titer<2 && maxdT>dTmax
+    dt      = dt/maxdT*dTmax;
+else
+    break
+end
+end
+titer
 
 
             

@@ -13,12 +13,13 @@ xm              = zeros(1,marknum); % Horizontal coordinates, m
 zm              = zeros(1,marknum); % Vertical coordinates, m
 Etam            = zeros(1,marknum); % Viscosity at M
 Alpham          = zeros(1,marknum); % Thermal expansion at M
-RhoCpm          = zeros(1,marknum); % Heat capacity at M
+Cpm          = zeros(1,marknum); % Heat capacity at M
 Kappam          = zeros(1,marknum); % Thermal conductivity at M
 Hrm             = zeros(1,marknum); % Rafiogenic heating at M
 Tm              = zeros(1,marknum); % Temperature at marker
 Mtype           = zeros(1,marknum);
 m               = 1;                % initialise marker counter
+w = D/6;
 
 %loop to set markers
 for jm=1:1:nxm_all
@@ -27,10 +28,22 @@ for im=1:1:nzm_all
     xm(m)   = dxm/2+(jm-1)*dxm+(rand-0.5)*dxm; % randomly distributed
     zm(m)   = dzm/2+(im-1)*dzm+(rand-0.5)*dzm;
     % Input marker properties
-    Tm(m)       = T_top + abs(zm(m))/D*(T_bot-T_top); 
+    switch Ambtype
+        case 'linear'           
+            Tm(m)       = T_top + abs(zm(m))/D*(T_bot-T_top); 
+        case 'constant'
+            Tm(m)       = T_top;
+        case 'gaussian'
+            Tm(m)       = T_top;
+            Tm(m) = Tm(m) + (T_bot-T_top)*1.05*exp(- (xm(m)-L/2)^2/w^2 - (zm(m)-D/2)^2/w^2 );
+    end
+%     rmark=((xm(m)-L/2)^2+(zm(m)-D/2)^2)^0.5;
+%     if rmark<(L/5)
+%         Tm(m) = 2000;
+%     end
     Etam(m)     = Eta_mantle;    % Viscosity
     Alpham(m)   = Alpha_mantle;  % Thermal expansion
-    RhoCpm(m)   = RhoCp_mantle;  % Heat capacity
+    Cpm(m)      = Cp_mantle;  % Heat capacity
     Kappam(m)   = Kappa_mantle;  % Thermal conductivity
     Hrm(m)      = Hr_mantle;     % Radiogenic heating
     if zm(m)>D*0.95
