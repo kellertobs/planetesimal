@@ -13,8 +13,10 @@ indvz   = reshape(2:2:(NW+NU),Nz,Nx);
 indP    = reshape(1:NP,Nz,Nx) + NU + NW;
 
 % setup A matrix and RHS vector
-A       = sparse(N_all,N_all);
-RHS     = zeros(N_all,1);
+II  = [];
+JJ  = [];
+AA  = [];
+RR  = [];
 
 for j = 1:1:Nx
 for i = 1:1:Nz
@@ -41,11 +43,16 @@ for i = 1:1:Nz
     EtaP1   = Eta_mid(i,j);
     EtaP2   = Eta_mid(i,j+1);
     
-    A(indvx(i,j),indvx(i,j-1))      = 2*EtaP1/dx^2;                 % vx left of current node
-    A(indvx(i,j),indvx(i-1,j))      = Eta1/dz^2;                    % vx  above current node
+    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i,j-1)];  AA = [AA,2*EtaP1/dx^2];
+    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i-1,j)];  AA = [AA,  Eta1 /dz^2];
+    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i+1,j)];  AA = [AA,  Eta2 /dz^2];
+    RR = [RR,0];
+    
+%     A(indvx(i,j),indvx(i,j-1))      = 2*EtaP1/dx^2;                 % vx left of current node
+%     A(indvx(i,j),indvx(i-1,j))      = Eta1/dz^2;                    % vx  above current node
     A(indvx(i,j),indvx(i,j))        = -2*(EtaP1+EtaP2)/dx^2 -...
                                         (Eta1+Eta2)/dz^2;           % vx current node
-    A(indvx(i,j),indvx(i+1,j))      = Eta2/dz^2;                    % vx below current node
+%     A(indvx(i,j),indvx(i+1,j))      = Eta2/dz^2;                    % vx below current node
     A(indvx(i,j),indvx(i,j+1))      = 2*EtaP2/dx^2;                 % vx right of current node
     
     A(indvx(i,j),indvz(i,j))        = -Eta2/dx/dz;                  % vz bottomleft
@@ -56,8 +63,8 @@ for i = 1:1:Nz
     A(indvx(i,j),indP(i,j+1))       = -Pscale/dx;                   % P2; right of current node
     % RHS
     %RHS(indvx(i,j))                 = Rho_vx(i,j)*gx;               % x direction gravity
-    RHS(indvx(i,j))                 = 0;               % x direction gravity
-
+%     RHS(indvx(i,j))                 = 0;               % x direction gravity
+    
     end
     
     %% z-Stokes eq. ETA*(d2Vy/dx^2+d2Vy/dy^2)-dP/dy=-RHO*gy
@@ -129,6 +136,10 @@ for i = 1:1:Nz
     end       
 end 
 end
+
+% Assemble coefficient matrix and right-hand side vector
+A       = sparse(II,JJ,AA,N_all,N_all);
+RHS     = sparse(II,ones(size(II)),RR,N_all,1);
 
 
 %% Scale system of equations (diagonal preconditioning)
