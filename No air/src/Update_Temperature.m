@@ -41,6 +41,7 @@ A           = sparse(Nz*Nx,Nz*Nx);
 RHS         = zeros(Nz*Nx,1);
 
 
+
 %% fill implicit matrices
 for i = 1:1:Nz
 for j = 1:1:Nx    

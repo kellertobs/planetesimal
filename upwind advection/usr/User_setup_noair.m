@@ -22,7 +22,7 @@ gz          = 10;                               % vertical/z gravitational const
 gx          = 0;                                % horizontal/x gravitational constant
 % Ambtype    = 'constant'                        % constant ambient background temperature
 Ambtype    = 'linear'                          % linear temperaure profile between top and bottom
-Ambtype     = 'gaussian'
+% Ambtype     = 'gaussian'
 
 % plumetype   = 'wide'
 % plumetype   = 'central'
@@ -50,6 +50,7 @@ case 'gaussian'
 T_bot       =   1500;   T_top       =   1200;
 end
 
+T_mantle = 1500;
 Rho0        = Rho_mantle; %baseline density = minimum density
 
 %% setup grid parameters

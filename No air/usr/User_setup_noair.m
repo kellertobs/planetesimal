@@ -3,7 +3,7 @@
 clear; 
 close all
 
-RunID       = 'fixed gaussian middle';   % run identifier
+RunID       = 'high Rayleigh test';   % run identifier
 
 %% setup model domain (user editable)
 L           = 500*1e3;                          % length of x domain
@@ -20,8 +20,8 @@ rplume      = 100000;                           % radius of plume (if modelling 
 %% setup physical parameters
 gz          = 10;                               % vertical/z gravitational constant 
 gx          = 0;                                % horizontal/x gravitational constant
-% Ambtype    = 'constant'                        % constant ambient background temperature
-Ambtype    = 'linear'                          % linear temperaure profile between top and bottom
+Ambtype    = 'constant'                        % constant ambient background temperature
+% Ambtype    = 'linear'                          % linear temperaure profile between top and bottom
 Ambtype     = 'gaussian'
 
 % plumetype   = 'wide'
@@ -71,6 +71,7 @@ bcbottom        = -1;
 % T_top           = T_air;
 % T_bot           = T_plume;
 
+Ra = Rho0*Alpha_mantle*300*(L^3)*gz/Eta_mantle/(Kappa_mantle/Rho0/Cp_mantle)
 %% Loop settings
 nt              = 200;      % number of loop iterations
 vpratio         = 1/3;      % Weight of averaged velocity for moving markers

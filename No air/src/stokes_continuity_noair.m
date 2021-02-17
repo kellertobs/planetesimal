@@ -13,9 +13,12 @@ indvz   = reshape(2:2:(NW+NU),Nz,Nx);
 indP    = reshape(1:NP,Nz,Nx) + NU + NW;
 
 % setup A matrix and RHS vector
+% A = sparse(N_all,N_all);
+% RHS = zeros(N_all,1);
 II  = [];
 JJ  = [];
 AA  = [];
+IR  = [];
 RR  = [];
 
 for j = 1:1:Nx
@@ -25,15 +28,19 @@ for i = 1:1:Nz
     
     % boundary conditions of vx
     if(i==1 || i==Nz || j==1 || j==nx1 || j==Nx)
-            A(indvx(i,j),indvx(i,j))    = 1; % A matrix coefficient
-            RHS(indvx(i,j))             = 0; % RHS
+        II = [II,indvx(i,j)]; JJ = [JJ,indvx(i,j)];   AA = [AA, 1];
+        IR = [IR,indvx(i,j)]; RR = [RR, 0];
+%             A(indvx(i,j),indvx(i,j))    = 1; % A matrix coefficient
+%             RHS(indvx(i,j))             = 0; % RHS
         %Top boundary
         if (i==1 && j>1 && j<nx1)
-            A(indvx(i,j),indvx(i+1,j))  = bctop; %only solve for the bottom of the top boundary
+            II = [II,indvx(i,j)]; JJ = [JJ,indvx(i+1,j)];   AA = [AA, bctop];
+%             A(indvx(i,j),indvx(i+1,j))  = bctop; %only solve for the bottom of the top boundary
         end
         %Bottom boundary    
         if (i==Nz && j>1 && j<nx1)
-            A(indvx(i,j),indvx(i-1,j))  = bcbottom; % above the bottom boundary
+            II = [II,indvx(i,j)]; JJ = [JJ,indvx(i-1,j)];   AA = [AA, bcbottom];
+%             A(indvx(i,j),indvx(i-1,j))  = bcbottom; % above the bottom boundary
         end
     % now solve internal points on the real grid
     else
@@ -43,24 +50,27 @@ for i = 1:1:Nz
     EtaP1   = Eta_mid(i,j);
     EtaP2   = Eta_mid(i,j+1);
     
-    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i,j-1)];  AA = [AA,2*EtaP1/dx^2];
-    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i-1,j)];  AA = [AA,  Eta1 /dz^2];
-    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i+1,j)];  AA = [AA,  Eta2 /dz^2];
-    RR = [RR,0];
+    %vx
+    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i,j-1)];   AA = [AA, 2*EtaP1/dx^2]; % vx left of current node
+    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i-1,j)];   AA = [AA,    Eta1/dz^2]; % vx  above current node
+    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i,j)];     AA = [AA,-2*(EtaP1+EtaP2)/dx^2 - (Eta1+Eta2)/dz^2]; % vx current node
+    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i+1,j)];   AA = [AA,   Eta2 /dz^2]; % vx below current node
+    II = [II,indvx(i,j)]; JJ = [JJ,indvx(i,j+1)];   AA = [AA, 2*EtaP2/dx^2]; % vx right of current node
+    %vz
+    II = [II,indvx(i,j)]; JJ = [JJ,indvz(i,j)];     AA = [AA,   -Eta2/dx/dz]; % vz bottomleft
+    II = [II,indvx(i,j)]; JJ = [JJ,indvz(i,j+1)];   AA = [AA,    Eta2/dx/dz]; % vz bottomright
+    II = [II,indvx(i,j)]; JJ = [JJ,indvz(i-1,j)];   AA = [AA,    Eta1/dx/dz]; % vz topleft
+    II = [II,indvx(i,j)]; JJ = [JJ,indvz(i-1,j+1)]; AA = [AA,   -Eta1/dx/dz]; % vz topright
     
-%     A(indvx(i,j),indvx(i,j-1))      = 2*EtaP1/dx^2;                 % vx left of current node
-%     A(indvx(i,j),indvx(i-1,j))      = Eta1/dz^2;                    % vx  above current node
-    A(indvx(i,j),indvx(i,j))        = -2*(EtaP1+EtaP2)/dx^2 -...
-                                        (Eta1+Eta2)/dz^2;           % vx current node
-%     A(indvx(i,j),indvx(i+1,j))      = Eta2/dz^2;                    % vx below current node
-    A(indvx(i,j),indvx(i,j+1))      = 2*EtaP2/dx^2;                 % vx right of current node
+    II = [II,indvx(i,j)]; JJ = [JJ,indP(i,j)];      AA = [AA,    Pscale/dx]; % P1; current node
+    II = [II,indvx(i,j)]; JJ = [JJ,indP(i,j+1)];    AA = [AA,   -Pscale/dx]; % P2; right of current node
+    %RHS
+    IR = [IR,indvx(i,j)]; RR = [RR, 0];
     
-    A(indvx(i,j),indvz(i,j))        = -Eta2/dx/dz;                  % vz bottomleft
-    A(indvx(i,j),indvz(i,j+1))      = Eta2/dx/dz;                   % vz bottomright      
-    A(indvx(i,j),indvz(i-1,j))      = Eta1/dx/dz;                   % vz topleft
-    A(indvx(i,j),indvz(i-1,j+1))    = -Eta1/dx/dz;                  % vz topright     
-    A(indvx(i,j),indP(i,j))         = Pscale/dx;                    % P1; current node
-    A(indvx(i,j),indP(i,j+1))       = -Pscale/dx;                   % P2; right of current node
+                                    
+                    
+%     A(indvx(i,j),indP(i,j))         = Pscale/dx;                    
+%     A(indvx(i,j),indP(i,j+1))       = -Pscale/dx;                  
     % RHS
     %RHS(indvx(i,j))                 = Rho_vx(i,j)*gx;               % x direction gravity
 %     RHS(indvx(i,j))                 = 0;               % x direction gravity
@@ -71,15 +81,19 @@ for i = 1:1:Nz
     % solve z equation
     % boundary conditions of vz
     if(j==1 || j==Nx || i==1 || i==nz1 || i==Nz)
-            A(indvz(i,j),indvz(i,j))    = 1;        % A matrix coefficient
-            RHS(indvz(i,j))             = 0;        % RHS
+        II = [II,indvz(i,j)]; JJ = [JJ,indvz(i,j)];   AA = [AA, 1];
+        IR = [IR,indvz(i,j)]; RR = [RR, 0];
+%             A(indvz(i,j),indvz(i,j))    = 1;        % A matrix coefficient
+%             RHS(indvz(i,j))             = 0;        % RHS
         %left boundary
         if (j==1 && i>1 && i<nz1)
-            A(indvz(i,j),indvz(i,j+1))  = bcleft;   %solve for right of the leftmost bodes
+            II = [II,indvz(i,j)]; JJ = [JJ,indvz(i,j+1)];   AA = [AA, bcleft];
+%             A(indvz(i,j),indvz(i,j+1))  = bcleft;   %solve for right of the leftmost bodes
         end
         %right boundary    
         if (j==Nx && i>1 && i<nz1)
-            A(indvz(i,j),indvz(i,j-1))  = bcright;  % above the bottom boundary
+            II = [II,indvz(i,j)]; JJ = [JJ,indvz(i,j-1)];   AA = [AA, bcright];
+%             A(indvz(i,j),indvz(i,j-1))  = bcright;  % above the bottom boundary
         end
     % solve internal points    
     else
@@ -88,58 +102,56 @@ for i = 1:1:Nz
         Eta2    = Eta_out(i,j);
         EtaP1   = Eta_mid(i,j);
         EtaP2   = Eta_mid(i+1,j);
+
+    %vz
+    II = [II,indvz(i,j)]; JJ = [JJ,indvz(i,j-1)];  AA = [AA,    Eta1/dx^2]; % vx1 left of current node
+    II = [II,indvz(i,j)]; JJ = [JJ,indvz(i-1,j)];  AA = [AA,  2*EtaP1/dz^2]; % vx2 above current node
+    II = [II,indvz(i,j)]; JJ = [JJ,indvz(i,j)];    AA = [AA,-2*(EtaP1+EtaP2)/dz^2-(Eta1+Eta2)/dx^2]; % vx3 current node
+    II = [II,indvz(i,j)]; JJ = [JJ,indvz(i+1,j)];  AA = [AA,  2*EtaP2/dz^2]; % vx4 below current node
+    II = [II,indvz(i,j)]; JJ = [JJ,indvz(i,j+1)];  AA = [AA,    Eta2/dx^2]; % vx5 right of current node
+    %vx
+    II = [II,indvz(i,j)]; JJ = [JJ,indvx(i,j)];     AA = [AA,   -Eta2/dx/dz]; % topright
+    II = [II,indvz(i,j)]; JJ = [JJ,indvx(i+1,j)];   AA = [AA,    Eta2/dx/dz]; % bottomright
+    II = [II,indvz(i,j)]; JJ = [JJ,indvx(i,j-1)];   AA = [AA,    Eta1/dx/dz]; % topleft
+    II = [II,indvz(i,j)]; JJ = [JJ,indvx(i+1,j-1)]; AA = [AA,   -Eta1/dx/dz]; % bottomleft
+    II = [II,indvz(i,j)]; JJ = [JJ,indP(i,j)];      AA = [AA,    Pscale/dx];  % P1; current node
+    II = [II,indvz(i,j)]; JJ = [JJ,indP(i+1,j)];    AA = [AA,    -Pscale/dx]; % P2; bottom of current node  
         
-    % A matrix coefficients
-    A(indvz(i,j),indvz(i,j-1))      = Eta1/dx^2;                    % vx1 left of current node
-    A(indvz(i,j),indvz(i-1,j))      = 2*EtaP1/dz^2;                 % vx2 above current node
-    A(indvz(i,j),indvz(i,j))        = -2*(EtaP1+EtaP2)/dz^2-...
-                                        (Eta1+Eta2)/dx^2;           % vx3 current node
-    A(indvz(i,j),indvz(i+1,j))      = 2*EtaP2/(dz^2);               % vx4 below current node
-    A(indvz(i,j),indvz(i,j+1))      = Eta2/(dx^2);                  % vx5 right of current node
-    A(indvz(i,j),indvx(i,j))        = -Eta2/dx/dz;                  % topright
-    A(indvz(i,j),indvx(i+1,j))      = Eta2/dx/dz;                   % bottomright
-    A(indvz(i,j),indvx(i,j-1))      = Eta1/dx/dz;                   % topleft
-    A(indvz(i,j),indvx(i+1,j-1))    = -Eta1/dx/dz;                  % bottomleft
-    
-    A(indvz(i,j),indP(i,j))         = Pscale/dz;                    %P1; current node
-    A(indvz(i,j),indP(i+1,j))       = -Pscale/dz;                   %P2; bottom of current node
-    % RHS
-    RHS(indvz(i,j))                 = -gz*Rho_vz(i,j);
+    IR = [IR,indvz(i,j)]; RR = [RR, -gz*Rho_vz(i,j)];
+
     end
     
     %% P-Stokes eq. dVx/dx+dVy/dy=0
     % boundary points
     % P equation External points
-    if(i==1 || j==1 || i==Nz || j==Nx ||...
-            (i==2 && j==2))
+    if(i==1 || j==1 || i==Nz || j==Nx)
         % Boundary Condition
         % 1*P=0
-            A(indP(i,j),indP(i,j))  = 1;        % Left part
-            RHS(indP(i,j))          = 0;        % Right part
+        II = [II,indP(i,j)]; JJ = [JJ,indP(i,j)];   AA = [AA, 1];
+        IR = [IR,indP(i,j)]; RR = [RR, 0];
          % Real BC
-        if(i==2 && j==2)
-            A(indP(i,j),indP(i,j))  = 1*Pscale; % Left part
-            RHS(indP(i,j))          = 0;     % Right part   
-        end
+    elseif (i==2 && j==2)
+            II = [II,indP(i,j)]; JJ = [JJ,indP(i,j)];   AA = [AA, 1*Pscale];
+            IR = [IR,indP(i,j)]; RR = [RR, 0];
+
     % now solve internal points    
     else
-    % A matrix coefficients    
-    A(indP(i,j),indvx(i,j-1))       = -1/dx;    % left of current node
-    A(indP(i,j),indvx(i,j))         = 1/dx;     % current node
-    A(indP(i,j),indvz(i-1,j))       = -1/dz;    % above current node
-    A(indP(i,j),indvz(i,j))         = 1/dz;     % below current node
     
-    A(indP(i,j),indP(i,j))          = 0.001*dx*dz/Eta_mid(i,j);
-    
+    II = [II,indP(i,j)]; JJ = [JJ,indvx(i,j-1)];  AA = [AA, -1/dx]; % left of current node
+    II = [II,indP(i,j)]; JJ = [JJ,indvx(i,j)];    AA = [AA,  1/dx]; % current node
+    II = [II,indP(i,j)]; JJ = [JJ,indvz(i-1,j)];  AA = [AA, -1/dz]; % above current node
+    II = [II,indP(i,j)]; JJ = [JJ,indvz(i,j)];    AA = [AA,  1/dz]; % below current node
+    II = [II,indP(i,j)]; JJ = [JJ,indP(i,j)];     AA = [AA, 0.001*dx*dz/Eta_mid(i,j)];
     % RHS
-    RHS(indP(i,j)) = 0;
+    IR = [IR,indP(i,j)]; RR = [RR, 0];
+    
     end       
 end 
 end
 
 % Assemble coefficient matrix and right-hand side vector
 A       = sparse(II,JJ,AA,N_all,N_all);
-RHS     = sparse(II,ones(size(II)),RR,N_all,1);
+RHS     = sparse(IR,ones(size(IR)),RR,N_all,1);
 
 
 %% Scale system of equations (diagonal preconditioning)

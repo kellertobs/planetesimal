@@ -36,14 +36,14 @@ for ti = 1:nt
     T_vx(:,nx1)     = T_vx(:,nx);
     T_vz(1:nz1,Nx)  = T_vz(1:nz1,nx1);
 %     plume beneath lithosphere
-%     midx = fix(L/2);
-%     
-%     indexP = find(abs(xp(1,:)) <= midx+ (L*0.23) & abs(xp(1,:)) >= midx - (L*0.23));
-%     T_mid(nz1,indexP) = T_bot+300;
-%     indexvx = find(abs(xvx(1,:)) <= midx+ (L*0.23) & abs(xvx(1,:)) >= midx - (L*0.23));
-%     T_vx(nz:Nz,indexvx) = T_bot+300;
-%     indexvz = find(abs(xvz(1,:)) <= midx+ (L*0.23) & abs(xvz(1,:)) >= midx - (L*0.23));
-%     T_vz(nz:Nz,indexvz) = T_bot+300;
+    midx = fix(L/2);
+    
+    indexP = find(abs(xp(1,:)) <= midx+ (L*0.23) & abs(xp(1,:)) >= midx - (L*0.23));
+    T_mid(nz1,indexP) = T_bot+300;
+    indexvx = find(abs(xvx(1,:)) <= midx+ (L*0.23) & abs(xvx(1,:)) >= midx - (L*0.23));
+    T_vx(nz:Nz,indexvx) = T_bot+300;
+    indexvz = find(abs(xvz(1,:)) <= midx+ (L*0.23) & abs(xvz(1,:)) >= midx - (L*0.23));
+    T_vz(nz:Nz,indexvz) = T_bot+300;
    
 
 
@@ -135,6 +135,8 @@ for ti = 1:nt
     vx_out,vz_out,vx_mid,vz_mid,vpratio,dt);
 
     time = dt+time; 
+    
+
     run('plotfigures2')
 
 %     figure(3)
