@@ -3,6 +3,7 @@ time            = 0;     % initialise time loop
 
 %% main loop
 for ti = 1:nt
+    profile on
     % % =============================================================
     % % update grid
     % % =============================================================
@@ -136,9 +137,11 @@ for ti = 1:nt
 
     time = dt+time; 
     
-
+    if ~mod(ti,5) || ti==1
     run('plotfigures2')
-
+    profile report
+    end
+    ti
 %     figure(3)
 %     plot(log10(time),log10(dt),'--o')
 %     xlabel('cumulative time')

@@ -6,32 +6,24 @@ function [Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,T_diff,dT] =...
 
 Hxz = Sigxx;
 %% calculate stresses and shear/adiabatic heating
-for j = 1:1:nx1
-for i = 1:1:nz1
-    Epsxz(i,j)  = 1/2 * ((vx_out(i+1,j) - vx_out(i,j))/dz...
-                       + (vz_out(i,j+1) - vz_out(i,j))/dx);   %shear strain on normal grid
-    Sigxz(i,j)  =       2*Eta_out(i,j)*Epsxz(i,j);          %deviatoric stress on normal grid
-end 
-end
-for j = 2:1:nx1 %calculate normal stress/strain components on the middle of grid/pressure nodes
-for i = 2:1:nz1
-    Epsxx(i,j)  = (vx_out(i,j) - vx_out(i,j-1))/dx; %Normal strain rate
-    Sigxx(i,j)  = 2*Eta_mid(i,j)*Epsxx(i,j); %deviatoric stress
-end
-end
+Epsxz(1:nz1,1:nx1) = 1/2 .* ((vx_out(2:Nz,1:nx1) - vx_out(1:nz1,1:nx1))./dz...
+                          +  (vz_out(1:nz1,2:Nx) - vz_out(1:nz1,1:nx1))./dx);
+Sigxz(1:nz1,1:nx1) =   2 .* Eta_out(1:nz1,1:nx1).*Epsxz(1:nz1,1:nx1);
+         
+%calculate normal stress/strain components on the middle of grid/pressure nodes
+Epsxx(2:nz1,2:nx1) = (vx_out(2:nz1,2:nx1) - vx_out(2:nz1,1:nx1-1))./dx; %Normal strain rate
+Sigxx(2:nz1,2:nx1) = 2.*Eta_mid(2:nz1,2:nx1).*Epsxx(2:nz1,2:nx1); %deviatoric stress
     
-%compute shear heating and adiabatic heating
-for j = 2:1:nx1 
-for i = 2:1:nz1
-    Hxz(i,j)         = (Epsxz(i-1,j-1)*Sigxz(i-1,j-1)    + Epsxz(i-1,j)*Sigxz(i-1,j) +...
-                   Epsxz(i-1,j)*Sigxz(i-1,j)        + Epsxz(i,j)*Sigxz(i,j))/4; %average of xz products
-    Hs(i,j)     = 2*Hxz(i,j) + 2*Epsxx(i,j)*Sigxx(i,j); %shear heating
-    % now compute adiabatic heating
-    Ha(i,j)     = (vz_out(i,j) + vz_out(i-1,j))/2 * (Rho_vz(i,j) + Rho_vz(i-1,j))/2 ...
-        *T_mid(i,j)*gz*Alpha_mid(i,j);
-end
-end
-        
+% compute shear heating and adiabatic heating
+Hxz(2:nz1,2:nx1) = (Epsxz(1:nz1-1,1:nx1-1)  .*Sigxz(1:nz1-1,1:nx1-1)...
+                  + Epsxz(1:nz1-1,2:nx1)    .*Sigxz(1:nz1-1,2:nx1) +...
+                    Epsxz(1:nz1-1,2:nx1)    .*Sigxz(1:nz1-1,2:nx1)...
+                  + Epsxz(2:nz1,2:nx1)      .*Sigxz(2:nz1,2:nx1))./4; %average of xz products
+Hs(2:nz1,2:nx1)  = 2.*Hxz(2:nz1,2:nx1)  +  2.*Epsxx(2:nz1,2:nx1).*Sigxx(2:nz1,2:nx1); %shear heating
+% now compute adiabatic heating
+Ha(2:nz1,2:nx1)         = (vz_out(2:nz1,2:nx1) + vz_out(1:nz1-1,2:nx1))./2 .* (Rho_vz(2:nz1,2:nx1) + Rho_vz(1:nz1-1,2:nx1))./2 ...
+               .*T_mid(2:nz1,2:nx1).*gz.*Alpha_mid(2:nz1,2:nx1);
+    
 %% Solve temperature diffusion
 %setip matrix and vector for implicit solution
 NP          = Nx*Nz; % total number of P nodes to solve + ghost nodes
@@ -124,12 +116,8 @@ RHS         =  X*RHS;
 
 %% output T grid
 Tvec = X*(A\RHS); % backslash operator to output diffused temperature vector
-for j=1:1:Nx
-for i=1:1:Nz    
-    % Reload solution
-    T_diff(i,j)=Tvec(ind(i,j));
-end
-end
+T_diff = reshape(Tvec,size(T_diff));
+
 
 % compute dT
 dT          = T_diff-T_mid;

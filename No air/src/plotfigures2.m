@@ -74,10 +74,10 @@
     
     
     saveas(figure(1),['../out/', RunID, '/Ti0.jpg'])
-    end
+    else
     
     % output plots
-    if ~mod(ti,5)
+%     if ~mod(ti,5)
     
         figure(1);
     subplot(3,3,1)
