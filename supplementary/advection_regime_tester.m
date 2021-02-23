@@ -53,18 +53,19 @@ au3     = a;
 au2     = a;
 nt = 2000;
 time = 0;
-ti = 0
+ti = 0;
 
 while max([max(max(af))-min(min(af)) max(max(au2))-min(min(au2)) max(max(au3))-min(min(au3))]) < 600
-    ti = ti+1;
+    
 % for ti = 1:1:nt
-    
-    dt = 0.1 * min( h/2/max(abs(u(:))) , h/2/max(abs(w(:))) );    
-    
+    ti = ti+1;
+    dt = 0.5 * min( h/2/max(abs(u(:))) , h/2/max(abs(w(:))) );    
+    profile on
     dadtf   = advection(u,w,af,h,N,'fromm');
     dadtu1  = advection(u,w,au1,h,N,'first upwind');
     dadtu3  = advection(u,w,au3,h,N,'third upwind');
     dadtu2  = advection(u,w,au2,h,N,'second upwind');
+    profile report
     
     if ti==1
     af(2:end-1,2:end-1)     = af(2:end-1,2:end-1)   - dadtf*dt;
@@ -129,8 +130,8 @@ while max([max(max(af))-min(min(af)) max(max(au2))-min(min(au2)) max(max(au3))-m
     end
     time = time +dt;
 end
-
-
+ti
+profile off
 
 function adv = advection(u,w,a,h,N,output)
 wp = w(2:end,2:end-1);
@@ -138,25 +139,17 @@ wm = w(1:end-1,2:end-1);
 up = u(2:end-1,2:end);
 um = u(2:end-1,1:end-1);
 
- 
-
 agh                    = zeros(size(a)+2);
 agh(2:end-1,2:end-1)   = a;
 
- 
-
 agh([1 2 end-1 end],:) = agh([3 3 end-2 end-2],:);
 agh(:,[1 2 end-1 end]) = agh(:,[3 3 end-2 end-2]);
-
-
- 
 
 acc = agh(3:end-2,3:end-2);
 ajp = agh(4:end-1,3:end-2);  ajpp = agh(5:end-0,3:end-2);
 ajm = agh(2:end-3,3:end-2);  ajmm = agh(1:end-4,3:end-2);
 aip = agh(3:end-2,4:end-1);  aipp = agh(3:end-2,5:end-0);
 aim = agh(3:end-2,2:end-3);  aimm = agh(3:end-2,1:end-4);
-
 
 switch output
     case 'fromm'
@@ -169,70 +162,48 @@ switch output
               - abs(wp).*(-(ajpp-ajp)./h./8 + (ajp - acc)./h./4 - (acc-ajm )./h./8) ...
               -     wm .*(-(ajp -acc)./h./8 + (acc + ajm)./h./2 + (ajm-ajmm)./h./8) ...
               + abs(wm).*(-(ajp -acc)./h./8 + (acc - ajm)./h./4 - (ajm-ajmm)./h./8);
+          
     case 'first upwind'
         adv = zeros(size(a)-2);
-        for i = 1:1:N
-        for j = 1:1:N
-            vx = (up(i,j)+um(i,j))/2;
-            vz = (wp(i,j)+wm(i,j))/2;
-
-            if vx>0
-                dadx = vx*(agh(i+2,j+2)-agh(i+2,j+1))/h;
-            else
-                dadx = vx*(-agh(i+2,j+2)+agh(i+2,j+3))/h;
-            end
-            if vz>0
-                dadz = vz*(agh(i+2,j+2)-agh(i+1,j+2))/h;
-            else
-                dadz = vz*(-agh(i+2,j+2)+agh(i+3,j+2))/h;
-            end
-            adv(i,j) = dadx+dadz;
-        end
-        end
+        vx = (up+um)./2;
+        vz = (wp+wm)./2;
+        vxp = max(vx,0); vxm = min(vx,0);
+        vzp = max(vz,0); vzm = min(vz,0);
+        axp = (agh(3:end-2,4:end-1)-agh(3:end-2,3:end-2))./h;
+        axm = (agh(3:end-2,3:end-2)-agh(3:end-2,2:end-3))./h;
+        azp = (agh(4:end-1,3:end-2)-agh(3:end-2,3:end-2))./h;
+        azm = (agh(3:end-2,3:end-2)-agh(2:end-3,3:end-2))./h;
+        daxdt = vxp.*axm + vxm.*axp;
+        dazdt = vzp.*azm + vzm.*azp;
+        adv = daxdt + dazdt;
         
     case 'second upwind'
         adv = zeros(size(a)-2);
-        for i = 1:1:N
-        for j = 1:1:N
-            vx = (up(i,j)+um(i,j))/2;
-            vz = (wp(i,j)+wm(i,j))/2;
-
-            if vx>0
-                dadx = vx*(3*agh(i+2,j+2)-4*agh(i+2,j+1)+agh(i+2,j))/2/h;
-            else
-                dadx = vx*(-3*agh(i+2,j+2)+4*agh(i+2,j+3)-agh(i+2,j+4))/2/h;
-            end
-            if vz>0
-                dadz = vz*(3*agh(i+2,j+2)-4*agh(i+1,j+2)+agh(i,j+2))/2/h;
-            else
-                dadz = vz*(-3*agh(i+2,j+2)+4*agh(i+3,j+2)-agh(i+4,j+2))/2/h;
-            end
-            adv(i,j) = dadx+dadz;
-        end
-        end
+        vx = (up+um)./2;
+        vz = (wp+wm)./2;
+        vxp = max(vx,0); vxm = min(vx,0);
+        vzp = max(vz,0); vzm = min(vz,0);
+        axp = (-3*agh(3:end-2,3:end-2)+4*agh(3:end-2,4:end-1)-agh(3:end-2,5:end))/2/h;
+        axm = (3*agh(3:end-2,3:end-2)-4*agh(3:end-2,2:end-3)+agh(3:end-2,1:end-4))/2/h;
+        azp = (-3*agh(3:end-2,3:end-2)+4*agh(4:end-1,3:end-2)-agh(5:end,3:end-2))/2/h;
+        azm = (3*agh(3:end-2,3:end-2)-4*agh(2:end-3,3:end-2)+agh(1:end-4,3:end-2))/2/h;
+        daxdt = vxp.*axm + vxm.*axp;
+        dazdt = vzp.*azm + vzm.*azp;
+        adv = daxdt + dazdt;        
         
     case 'third upwind'
         adv = zeros(size(a)-2);
-        for i = 1:1:N
-        for j = 1:1:N
-            vx = (up(i,j)+um(i,j))/2;
-            vz = (wp(i,j)+wm(i,j))/2;
-
-            if vx>0
-                dadx = vx*(2*agh(i+2,j+3)+3*agh(i+2,j+2)-6*agh(i+2,j+1)+agh(i+2,j))/6/h;
-            else
-                dadx = vx*(-2*agh(i+2,j+1)-3*agh(i+2,j+2)+6*agh(i+2,j+3)-agh(i+2,j+4))/6/h;
-            end
-            if vz>0
-                dadz = vz*(2*agh(i+3,j+2)+3*agh(i+2,j+2)-6*agh(i+1,j+2)+agh(i,j+2))/6/h;
-            else
-                dadz = vz*(-2*agh(i+1,j+2)-3*agh(i+2,j+2)+6*agh(i+3,j+2)-agh(i+4,j+2))/6/h;
-            end
-            adv(i,j) = dadx+dadz;
-        end
-        end        
-end
-  
-
-  
+        vx = (up+um)./2;
+        vz = (wp+wm)./2;
+        vxp = max(vx,0); vxm = min(vx,0);
+        vzp = max(vz,0); vzm = min(vz,0);
+        axp = (-2*agh(3:end-2,2:end-3)-3*agh(3:end-2,3:end-2)+6*agh(3:end-2,4:end-1)-agh(3:end-2,5:end))/6/h;
+        axm = (2*agh(3:end-2,4:end-1)+3*agh(3:end-2,3:end-2)-6*agh(3:end-2,2:end-3)+agh(3:end-2,1:end-4))/6/h;
+        azp = (-2*agh(2:end-3,3:end-2)-3*agh(3:end-2,3:end-2)+6*agh(4:end-1,3:end-2)-agh(5:end,3:end-2))/6/h;
+        azm = (2*agh(4:end-1,3:end-2)+3*agh(3:end-2,3:end-2)-6*agh(2:end-3,3:end-2)+agh(1:end-4,3:end-2))/6/h;
+        daxdt = vxp.*axm + vxm.*axp;
+        dazdt = vzp.*azm + vzm.*azp;
+        adv = daxdt + dazdt;
+            
+end  
 end
