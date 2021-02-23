@@ -6,68 +6,47 @@
 [x,z,xvx,zvx,xvz,zvz,xp,zp] = vectorsetup(D,L,dx,dz);
 
 % setup meshes
+[x2d,z2d] = meshgrid(x,z); %edgepoint grid
+[xvx2d,zvx2d] = meshgrid(xvx,zvx); % staggered vx grid
+[xvz2d,zvz2d] = meshgrid(xvz,zvz); % staggered vz grid
+[xp2d,zp2d] = meshgrid(xp,zp); % centre clock grod
 
-%% setup grid
+%% setup material grids
+% temperature
+switch Ambtype
+    case 'constant'
+        T_mid = zeros(Nz,Nx)+T_top; 
+        T_mid(Nz,:) = T_bot;
+    case 'linear'
+        T_mid = T_top + abs(zp2d)./D.*(T_bot-T_top);
+    case 'gaussian'
+        radius = L/7;
+        T_mid = zeros(Nz,Nx)+T_top; 
+        T_mid = T_mid + 500.*exp(- (xp2d-L/2).^2./radius.^2 - (zp2d-L/2).^2./radius.^2 );
+        T_mid(Nz,:) = T_bot;
+end
 
-%setup temperature grid
-T0      = T_mantle; %(placeholder)
-T       = zeros(nz1,nx1) + T0;
-for j = 1:1:nx1
-for i = 1:1:nz1
-    w = L/5;
-    T(m) = T(m) + 300*exp(- (xp(m)-L/2)^2/w^2 - (zp(m)-D/2)^2/w^2 );
-end
-end
-% %loop to set markers
-% for jm=1:1:nxm_all
-% for im=1:1:nzm_all
-%     % Define marker coordinates
-%     xm(m)   = dxm/2+(jm-1)*dxm+(rand-0.5)*dxm; % randomly distributed
-%     zm(m)   = dzm/2+(im-1)*dzm+(rand-0.5)*dzm;
-%     % Input marker properties
-%     switch Ambtype
-%         case 'linear'           
-%             Tm(m)       = T_top + abs(zm(m))/D*(T_bot-T_top); 
-%         case 'constant'
-%             Tm(m)       = T_top;
-%         case 'gaussian'
-%             Tm(m)       = T_top;
-%             
-%     end
-% %     rmark=((xm(m)-L/2)^2+(zm(m)-D/2)^2)^0.5;
-% %     if rmark<(L/5)
-% %         Tm(m) = 2000;
-% %     end
-%     Etam(m)     = Eta_mantle;    % Viscosity
-%     Alpham(m)   = Alpha_mantle;  % Thermal expansion
-%     Cpm(m)      = Cp_mantle;  % Heat capacity
-%     Kappam(m)   = Kappa_mantle;  % Thermal conductivity
-%     Hrm(m)      = Hr_mantle;     % Radiogenic heating
-%     if zm(m)>D*0.95
-%         Mtype(m) = 2;
-%     elseif zm(m)>D*0.9
-%         Mtype(m) = 1;
-%     elseif zm(m)>D*0.8
-%         Mtype(m) = 2;
-%     elseif zm(m)>D*0.7
-%         Mtype(m) = 1;
-%     elseif zm(m)>D*0.6
-%         Mtype(m) = 2;
-%     elseif zm(m)>D*0.5
-%         Mtype(m) = 1;
-%     elseif zm(m)>D*0.3
-%         Mtype(m) = 2;
-%     elseif zm(m)>D*0.1
-%         Mtype(m) = 1;
-%     else
-%         Mtype(m) = 2;
-%     end
-%         
-% 
-%     % Update marker counter
-%     m=m+1;
-% end
-% end
+    Material    = ones(Nz,Nx); % artificial colours for visual representation of deformation
+    Material(1:nz/10,:) = 2; Material(0.2*nz:0.3*nz,:) = 2; Material(0.4*nz:0.5*nz,:) = 2;
+    Material(0.6*nz:0.7*nz,:) = 2; Material(0.8*nz:0.9*nz,:) = 2;
+    Alpha_mid   = zeros(Nz,Nx) + Alpha_mantle;
+    Eta_mid     = zeros(Nz,Nx) + Eta_mantle; Eta_out = Eta_mid; % viscosity
+    Kappa_mid   = zeros(Nz,Nx) + Kappa_mantle; % thermal conductivity
+    Cp_mid      = zeros(Nz,Nx) + Cp_mantle; % heat capacity
+    Hr_mid      = zeros(Nz,Nx) + Hr_mantle; % radiogenic heat production
+
+    %initialise staggered grids
+    T_vx    = zeros(Nz,Nx); T_vz    = zeros(Nz,Nx);
+    k_vx    = zeros(Nz,Nx); k_vz = zeros(Nz,Nx);
+    Alpha_vx= zeros(Nz,Nx); Alpha_vz = zeros(Nz,Nx);
+
+    
+    pcolor(xp(2:nx1),zp(2:nz1),Material(2:nx1,2:nz1))
+    colormap(flipud(cm))
+    axis ij image;
+    shading flat; 
+    colorbar
+    title('colormap of Temperature')
 
 %% initialise arrays
 Epsxz           = zeros(Nz,Nx);     % strain rate on the ordinary grid

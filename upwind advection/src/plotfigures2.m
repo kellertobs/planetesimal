@@ -3,8 +3,8 @@
     if ti==1
     figure(1);
     subplot(3,3,1)
-    pcolor(xp(2:nx1),zp(2:nz1),log10(Material(2:nz1,2:nx1)));
-    colormap(subplot(3,3,1),'Jet')
+    pcolor(xp(2:nx1),zp(2:nz1),Material(2:nz1,2:nx1));
+    colormap(subplot(3,3,1),'gray')
     shading flat;
     axis ij image;
     title('colormap of material')
@@ -74,15 +74,15 @@
     
     
     saveas(figure(1),['../out/', RunID, '/Ti0.jpg'])
-    end
+    else
     
     % output plots
-    if ~mod(ti,5)
+%     if ~mod(ti,5)
     
-        figure(1);
+    figure(1);
     subplot(3,3,1)
-    pcolor(xp(2:nx1),zp(2:nz1),log10(Material(2:nz1,2:nx1)));
-    colormap(subplot(3,3,1),'Jet')
+    pcolor(xp(2:nx1),zp(2:nz1),Material(2:nz1,2:nx1));
+    colormap(subplot(3,3,1),'gray')
     shading flat;
     axis ij image;
     title('colormap of material')
