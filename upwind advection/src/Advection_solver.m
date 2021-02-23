@@ -50,10 +50,10 @@ switch output
               - abs(up).*(-(aipp-aip)./dx./8 + (aip - acc)./dx./4 - (acc-aim )./dx./8) ...
               -     um .*(-(aip -acc)./dx./8 + (acc + aim)./dx./2 + (aim-aimm)./dx./8) ...
               + abs(um).*(-(aip -acc)./dx./8 + (acc - aim)./dx./4 - (aim-aimm)./dx./8) ...
-              +     wp .*(-(ajpp-ajp)./dx./8 + (ajp + acc)./dx./2 + (acc-ajm )./dx./8) ...
-              - abs(wp).*(-(ajpp-ajp)./dx./8 + (ajp - acc)./dx./4 - (acc-ajm )./dx./8) ...
-              -     wm .*(-(ajp -acc)./dx./8 + (acc + ajm)./dx./2 + (ajm-ajmm)./dx./8) ...
-              + abs(wm).*(-(ajp -acc)./dx./8 + (acc - ajm)./dx./4 - (ajm-ajmm)./dx./8);
+              +     wp .*(-(ajpp-ajp)./dz./8 + (ajp + acc)./dz./2 + (acc-ajm )./dz./8) ...
+              - abs(wp).*(-(ajpp-ajp)./dz./8 + (ajp - acc)./dz./4 - (acc-ajm )./dz./8) ...
+              -     wm .*(-(ajp -acc)./dz./8 + (acc + ajm)./dz./2 + (ajm-ajmm)./dz./8) ...
+              + abs(wm).*(-(ajp -acc)./dz./8 + (acc - ajm)./dz./4 - (ajm-ajmm)./dz./8);
           
         dMdt  =     up .*(-(bipp-bip)./dx./8 + (bip + bcc)./dx./2 + (bcc-bim )./dx./8) ...
               - abs(up).*(-(bipp-bip)./dx./8 + (bip - bcc)./dx./4 - (bcc-bim )./dx./8) ...
@@ -63,59 +63,64 @@ switch output
               - abs(wp).*(-(bjpp-bjp)./dz./8 + (bjp - bcc)./dz./4 - (bcc-bjm )./dz./8) ...
               -     wm .*(-(bjp -bcc)./dz./8 + (bcc + bjm)./dz./2 + (bjm-bjmm)./dz./8) ...
               + abs(wm).*(-(bjp -bcc)./dz./8 + (bcc - bjm)./dz./4 - (bjm-bjmm)./dz./8);
-    case 'first upwind'
-        adv = zeros(size(a)-2);        
+    case 'first upwind'              
         vxp = max(u1,0); vxm = min(u1,0);
-        vzp = max(w1,0); vzm = min(w2,0);
-        axp = (agh(3:end-2,4:end-1)-agh(3:end-2,3:end-2))./h;
-        axm = (agh(3:end-2,3:end-2)-agh(3:end-2,2:end-3))./h;
-        azp = (agh(4:end-1,3:end-2)-agh(3:end-2,3:end-2))./h;
-        azm = (agh(3:end-2,3:end-2)-agh(2:end-3,3:end-2))./h;
+        vzp = max(w1,0); vzm = min(w1,0);
+        axp = (agh(3:end-2,4:end-1)-agh(3:end-2,3:end-2))./dx;
+        axm = (agh(3:end-2,3:end-2)-agh(3:end-2,2:end-3))./dx;
+        azp = (agh(4:end-1,3:end-2)-agh(3:end-2,3:end-2))./dz;
+        azm = (agh(3:end-2,3:end-2)-agh(2:end-3,3:end-2))./dz;
         daxdt = vxp.*axm + vxm.*axp;
         dazdt = vzp.*azm + vzm.*azp;
-        adv = daxdt + dazdt;
+        dTdt = daxdt + dazdt;
+       
+%         vxp = max(u1,0); vxm = min(u1,0);
+%         vzp = max(w1,0); vzm = min(w2,0);
+        bxp = (bgh(3:end-2,4:end-1)-bgh(3:end-2,3:end-2))./dx;
+        bxm = (bgh(3:end-2,3:end-2)-bgh(3:end-2,2:end-3))./dx;
+        bzp = (bgh(4:end-1,3:end-2)-bgh(3:end-2,3:end-2))./dz;
+        bzm = (bgh(3:end-2,3:end-2)-bgh(2:end-3,3:end-2))./dz;
+        dbxdt = vxp.*bxm + vxm.*bxp;
+        dbzdt = vzp.*bzm + vzm.*bzp;
+        dMdt = dbxdt + dbzdt;
         
     case 'second upwind'
-        adv = zeros(size(a)-2);
-        for i = 1:1:nz
-        for j = 1:1:nx
-            vx = (up(i,j)+um(i,j))/2;
-            vz = (wp(i,j)+wm(i,j))/2;
-
-            if vx>0
-                dadx = vx*(3*agh(i+2,j+2)-4*agh(i+2,j+1)+agh(i+2,j))/2/dx;
-            else
-                dadx = vx*(-3*agh(i+2,j+2)+4*agh(i+2,j+3)-agh(i+2,j+4))/2/dx;
-            end
-            if vz>0
-                dadz = vz*(3*agh(i+2,j+2)-4*agh(i+1,j+2)+agh(i,j+2))/2/dz;
-            else
-                dadz = vz*(-3*agh(i+2,j+2)+4*agh(i+3,j+2)-agh(i+4,j+2))/2/dz;
-            end
-            adv(i,j) = dadx+dadz;
-        end
-        end
+        vxp = max(u1,0); vxm = min(u1,0);
+        vzp = max(w1,0); vzm = min(w1,0);
+        axp = (-3*agh(3:end-2,3:end-2)+4*agh(3:end-2,4:end-1)-agh(3:end-2,5:end))/2/dx;
+        axm = (3*agh(3:end-2,3:end-2)-4*agh(3:end-2,2:end-3)+agh(3:end-2,1:end-4))/2/dx;
+        azp = (-3*agh(3:end-2,3:end-2)+4*agh(4:end-1,3:end-2)-agh(5:end,3:end-2))/2/dz;
+        azm = (3*agh(3:end-2,3:end-2)-4*agh(2:end-3,3:end-2)+agh(1:end-4,3:end-2))/2/dz;
+        daxdt = vxp.*axm + vxm.*axp;
+        dazdt = vzp.*azm + vzm.*azp;
+        dTdt = daxdt + dazdt;   
+        
+        bxp = (-3*bgh(3:end-2,3:end-2)+4*bgh(3:end-2,4:end-1)-bgh(3:end-2,5:end))/2/dx;
+        bxm = ( 3*bgh(3:end-2,3:end-2)-4*bgh(3:end-2,2:end-3)+bgh(3:end-2,1:end-4))/2/dx;
+        bzp = (-3*bgh(3:end-2,3:end-2)+4*bgh(4:end-1,3:end-2)-bgh(5:end,3:end-2))/2/dz;
+        bzm = ( 3*bgh(3:end-2,3:end-2)-4*bgh(2:end-3,3:end-2)+bgh(1:end-4,3:end-2))/2/dz;
+        dbxdt = vxp.*bxm + vxm.*bxp;
+        dbzdt = vzp.*bzm + vzm.*bzp;
+        dMdt = dbxdt + dbzdt; 
         
     case 'third upwind'
-        adv = zeros(size(a)-2);
-        for i = 1:1:nz
-        for j = 1:1:nx
-            vx = (up(i,j)+um(i,j))/2;
-            vz = (wp(i,j)+wm(i,j))/2;
-
-            if vx>0
-                dadx = vx*(2*agh(i+2,j+3)+3*agh(i+2,j+2)-6*agh(i+2,j+1)+agh(i+2,j))/6/dx;
-            else
-                dadx = vx*(-2*agh(i+2,j+1)-3*agh(i+2,j+2)+6*agh(i+2,j+3)-agh(i+2,j+4))/6/dx;
-            end
-            if vz>0
-                dadz = vz*(2*agh(i+3,j+2)+3*agh(i+2,j+2)-6*agh(i+1,j+2)+agh(i,j+2))/6/dz;
-            else
-                dadz = vz*(-2*agh(i+1,j+2)-3*agh(i+2,j+2)+6*agh(i+3,j+2)-agh(i+4,j+2))/6/dz;
-            end
-            adv(i,j) = dadx+dadz;
-        end
-        end        
+        vxp = max(u1,0); vxm = min(u1,0);
+        vzp = max(w1,0); vzm = min(w1,0);
+        axp = (-2*agh(3:end-2,2:end-3)-3*agh(3:end-2,3:end-2)+6*agh(3:end-2,4:end-1)-agh(3:end-2,5:end))/6  /dx;
+        axm = ( 2*agh(3:end-2,4:end-1)+3*agh(3:end-2,3:end-2)-6*agh(3:end-2,2:end-3)+agh(3:end-2,1:end-4))/6/dx;
+        azp = (-2*agh(2:end-3,3:end-2)-3*agh(3:end-2,3:end-2)+6*agh(4:end-1,3:end-2)-agh(5:end,3:end-2))  /6/dz;
+        azm = ( 2*agh(4:end-1,3:end-2)+3*agh(3:end-2,3:end-2)-6*agh(2:end-3,3:end-2)+agh(1:end-4,3:end-2))/6/dz;
+        daxdt = vxp.*axm + vxm.*axp;
+        dazdt = vzp.*azm + vzm.*azp;
+        dTdt = daxdt + dazdt;
+        
+        bxp = (-2*bgh(3:end-2,2:end-3)-3*bgh(3:end-2,3:end-2)+6*bgh(3:end-2,4:end-1)-bgh(3:end-2,5:end))/6  /dx;
+        bxm = ( 2*bgh(3:end-2,4:end-1)+3*bgh(3:end-2,3:end-2)-6*bgh(3:end-2,2:end-3)+bgh(3:end-2,1:end-4))/6/dx;
+        bzp = (-2*bgh(2:end-3,3:end-2)-3*bgh(3:end-2,3:end-2)+6*bgh(4:end-1,3:end-2)-bgh(5:end,3:end-2))  /6/dz;
+        bzm = ( 2*bgh(4:end-1,3:end-2)+3*bgh(3:end-2,3:end-2)-6*bgh(2:end-3,3:end-2)+bgh(1:end-4,3:end-2))/6/dz;
+        dbxdt = vxp.*bxm + vxm.*bxp;
+        dbzdt = vzp.*bzm + vzm.*bzp;
+        dMdt = dbxdt + dbzdt;
 end
   
 

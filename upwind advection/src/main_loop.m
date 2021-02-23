@@ -3,7 +3,7 @@ time            = 0;     % initialise time loop
 
 %% main loop
 for ti = 1:nt
-
+    profile on
     % % =============================================================
     % % update grid
     % % =============================================================
@@ -86,15 +86,23 @@ for ti = 1:nt
     % % =============================================================
     % % Update eulerian temperature, correct dt for maximum temperature
     % % =============================================================
-    [Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,T_diff,dT] =...
-    Update_Temperature(Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,nx1,nz1,dx,dz,...
-    vx_out,vz_out,Eta_out,Eta_mid,Rho_vz,Alpha_mid,T_mid,gz,...
-    Nx,Nz,k_vx,k_vz,Rho_mid,Cp_mid,Hr,T_top,dt);
+    switch Tsolver
+        case 'implicit'           
+            [Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,T_diff,dT] =...
+            Update_Temperature(Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,nx1,nz1,dx,dz,...
+            vx_out,vz_out,Eta_out,Eta_mid,Rho_vz,Alpha_mid,T_mid,gz,...
+            Nx,Nz,k_vx,k_vz,Rho_mid,Cp_mid,Hr,T_top,dt);
+        case 'explicit'
+            
+    end
     
     T_diff = full(T_diff);
     
 %     Output = 'Fromm'
     [dTdt,dMdt] = Advection_solver(vx_out,vz_out,vx_mid,vz_mid,T_diff,Material,dz,dx,nx,nz,nx1,nz1,'fromm');
+    [dTdt1,dMdt1] = Advection_solver(vx_out,vz_out,vx_mid,vz_mid,T_diff,Material,dz,dx,nx,nz,nx1,nz1,'first upwind');
+    [dTdt2,dMdt2] = Advection_solver(vx_out,vz_out,vx_mid,vz_mid,T_diff,Material,dz,dx,nx,nz,nx1,nz1,'second upwind');
+    [dTdt3,dMdt3] = Advection_solver(vx_out,vz_out,vx_mid,vz_mid,T_diff,Material,dz,dx,nx,nz,nx1,nz1,'third upwind');
     dTdt = full(dTdt); dMdt = full(dMdt);
     if ti == 1
         T_mid(2:end-1,2:end-1)      = T_diff(2:end-1,2:end-1)   - dTdt.*dt;
@@ -129,6 +137,7 @@ for ti = 1:nt
 %     hold on
 %     quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
     run('plotfigures2')
+    profile report
     pause(0.1)
     ti
     end
