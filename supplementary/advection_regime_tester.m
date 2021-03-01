@@ -1,109 +1,159 @@
+% test and compare advection schemes
+
+% prepare workspace
 clear all
 close all
+
+% set grid parameter
 L   = 1e3;
-N  = 200;
-h  = L/N;
+N   = 400;
+h   = L/N;
+
+% set run options
+RunID       = 'central gaussian rotation';
 movement    = 'rotation';
-RunID       = 'central gaussian rotation'
-% nodal grid
+a0          = 1;     % initialbackground value of advected quantity
+a1          = 1;     % initial amplitude of advected quantity
+radius      = L/20;  % initial radius of gaussian in advected quantity
+CFL         = 0.5;   % Courant number
+nt          = 10;
+
+% get coordinate grids
+% interior cell nodes
 x   = -L/2+h/2:h:(L/2 - h/2);
 z   = -L/2+h/2:h:(L/2 - h/2);
 [x2d,z2d] = meshgrid(x,z);
-%full nodal grid
+
+% ghosted cell nodes
 xa  = -L/2-h/2:h:L/2+h/2;
 za  = -L/2-h/2:h:L/2+h/2;
 [xa2d,za2d] = meshgrid(xa,za);
-% staggered grids for vx
+
+% staggered x-face nodes
 xu  = -L/2:h:L/2;
 zu  = -L/2-h/2:h:L/2+h/2;
 [xu2d,zu2d] = meshgrid(xu,zu);
-% staggered grids for vz
+
+% staggered z-face nodes
 xw  = -L/2-h/2:h:L/2+h/2;
 zw  = -L/2:h:L/2;
 [xw2d,zw2d] = meshgrid(xw,zw);
-% arrays and quantities
-u   = zeros(N+2,N+1); % staggered vx
-w   = zeros(N+1,N+2); % staggered vz
-a   = zeros(N+2,N+2);     % advected quantity
 
-% set initial distribution for advected quantity
-a0 = 1000;
-a   = a + a0;
+% initialise arrays for velocity
+u   = zeros(N+2,N+1);  % staggered vx
+w   = zeros(N+1,N+2);  % staggered vz
 
-radius = L/10;
-a = a + 500.*exp(- (xa2d-L/6).^2./radius.^2 - (za2d-L/6).^2./radius.^2 ); 
+% set initial condition for advected quantity
+x0  = L/6; z0 = L/6;
+gsn = exp(- (xa2d-x0).^2./radius.^2 - (za2d-z0).^2./radius.^2 );
+a   = a0 + a1.*gsn; 
 
-figure(1)
-subplot(2,2,1)
-imagesc(x,z,a(2:end-1,2:end-1)); 
-colorbar
-title('initial')
+% plot initial condition
+% figure(1)
+% subplot(2,2,1)
+% imagesc(x,z,a(2:end-1,2:end-1)); 
+% colorbar
+% title('initial')
+
+% set velocity field
 switch movement
     case 'rotation'
         u = -zu2d;
-        w = xw2d;  
+        w =  xw2d;  
+        umid = -za2d;
+        wmid =  xa2d;
 end
-umid = (u(:,1:end-1)+u(:,2:end))/2;
-wmid = (w(1:end-1,:)+w(2:end,:))/2;
 
+afr  = a;  dadtfr = 0.*a(2:end-1,2:end-1);
+au1  = a;  dadtu1 = 0.*a(2:end-1,2:end-1);
+au2  = a;  dadtu2 = 0.*a(2:end-1,2:end-1);
+au3  = a;  dadtu3 = 0.*a(2:end-1,2:end-1);
 
-af      = a;
-au1 = a;
-au3     = a;
-au2     = a;
-nt = 2000;
 time = 0;
-ti = 0;
+dt   = CFL * min( h/2/max(abs(u(:))) , h/2/max(abs(w(:))) );
+ti   = 0;
 
-while max([max(max(af))-min(min(af)) max(max(au2))-min(min(au2)) max(max(au3))-min(min(au3))]) < 600
+while max([max(afr(:))-min(afr(:)),max(au2(:))-min(au2(:)),max(au3(:))-min(au3(:))]) < 10*a1 && ti <= nt
+
+    % store previous advection rates
+    dadtfro = dadtfr;
+    dadtu1o = dadtu1;
+    dadtu2o = dadtu2;
+    dadtu3o = dadtu3;
+
+    dadtfr  = advection(u,w,afr,h,'fromm');
+    dadtu1  = advection(u,w,au1,h,'first upwind');
+    dadtu2  = advection(u,w,au2,h,'second upwind');
+    dadtu3  = advection(u,w,au3,h,'third upwind');
     
-% for ti = 1:1:nt
-    ti = ti+1;
-    dt = 0.5 * min( h/2/max(abs(u(:))) , h/2/max(abs(w(:))) );    
-    profile on
-    dadtf   = advection(u,w,af,h,N,'fromm');
-    dadtu1  = advection(u,w,au1,h,N,'first upwind');
-    dadtu3  = advection(u,w,au3,h,N,'third upwind');
-    dadtu2  = advection(u,w,au2,h,N,'second upwind');
-    profile report
+    % advance advection time step
+    afr(2:end-1,2:end-1)    = afr(2:end-1,2:end-1)  - (dadtfr+dadtfro)/2*dt;
+    au1(2:end-1,2:end-1)    = au1(2:end-1,2:end-1)  - (dadtu1+dadtu1o)/2*dt;
+    au2(2:end-1,2:end-1)    = au2(2:end-1,2:end-1)  - (dadtu2+dadtu2o)/2*dt;
+    au3(2:end-1,2:end-1)    = au3(2:end-1,2:end-1)  - (dadtu3+dadtu3o)/2*dt;
+
+    % advance reference gaussian
+    x0   = x0 + umid*dt; z0 = z0 + wmid*dt;
+    gsn  = exp(- (xa2d-x0).^2./radius.^2 - (za2d-z0).^2./radius.^2 );
+    res_afr = afr - (a0 + a1.*gsn); 
+    res_au1 = au1 - (a0 + a1.*gsn); 
+    res_au2 = au2 - (a0 + a1.*gsn); 
+    res_au3 = au3 - (a0 + a1.*gsn); 
+
+    resnorm_afr = norm(res_afr(:),2)./norm(afr,2);
+    resnorm_au1 = norm(res_au1(:),2)./norm(afr,2);
+    resnorm_au2 = norm(res_au2(:),2)./norm(afr,2);
+    resnorm_au3 = norm(res_au3(:),2)./norm(afr,2);
     
-    if ti==1
-    af(2:end-1,2:end-1)     = af(2:end-1,2:end-1)   - dadtf*dt;
-    au3(2:end-1,2:end-1)    = au3(2:end-1,2:end-1)  - dadtu3*dt;
-    au2(2:end-1,2:end-1)    = au2(2:end-1,2:end-1)  - dadtu2*dt;
-    au1(2:end-1,2:end-1)    = au1(2:end-1,2:end-1)  - dadtu1*dt;
-    else        
-    af(2:end-1,2:end-1)     = af(2:end-1,2:end-1)   - (dadtf+dadtf0)/2*dt;
-    au3(2:end-1,2:end-1)    = au3(2:end-1,2:end-1)  - (dadtu3+dadtu30)/2*dt;
-    au2(2:end-1,2:end-1)    = au2(2:end-1,2:end-1)  - (dadtu2+dadtu20)/2*dt;
-    au1(2:end-1,2:end-1)    = au1(2:end-1,2:end-1)  - dadtu1*dt;
-    end
-    dadtf0 = dadtf;
-    dadtu30 = dadtu3;
-    dadtu20 = dadtu2;
-    
-    if ~mod(ti,20)    
+    fprintf(1,'   --- res fromm = %1.3e; res upw1 = %1.3e; res upw2 = %1.3e; res upw3 = %1.3e;\n',resnorm_afr,resnorm_au1,resnorm_au2,resnorm_au3);
+        
+    % plot results
+    if ~mod(ti,10)  
+        
         figure(1)
-    subplot(2,2,1)
-    imagesc(x,z,af(2:end-1,2:end-1)); 
-    colorbar
-    title('fromm scheme')
-    
-    subplot(2,2,2)
-    imagesc(x,z,au1(2:end-1,2:end-1)); 
-    colorbar
-    title('1st order upwind')
-    
-    subplot(2,2,4)
-    imagesc(x,z,au3(2:end-1,2:end-1)); 
-    colorbar
-    title('3rd order upwind')
-    
-    subplot(2,2,3)
-    imagesc(x,z,au2(2:end-1,2:end-1)); 
-    colorbar
-    title('2nd order upwind')
-    
+        subplot(2,2,1)
+        imagesc(x,z,afr);
+        colorbar
+        title('fromm scheme')
+        
+        subplot(2,2,2)
+        imagesc(x,z,au1);
+        colorbar
+        title('1st order upwind')
+        
+        subplot(2,2,3)
+        imagesc(x,z,au2);
+        colorbar
+        title('2nd order upwind')
+        
+        subplot(2,2,4)
+        imagesc(x,z,au3);
+        colorbar
+        title('3rd order upwind')
+        drawnow;
+        
+        figure(2)
+        subplot(2,2,1)
+        imagesc(x,z,res_afr);
+        colorbar
+        title('fromm scheme')
+        
+        subplot(2,2,2)
+        imagesc(x,z,res_au1);
+        colorbar
+        title('1st order upwind')
+        
+        subplot(2,2,3)
+        imagesc(x,z,res_au2);
+        colorbar
+        title('2nd order upwind')
+        
+        subplot(2,2,4)
+        imagesc(x,z,res_au3);
+        colorbar
+        title('3rd order upwind')
+        drawnow;
+        
 %     figure(2)
 %     subplot(2,2,1)
 %     quiver(x(1:10:end),z(1:10:end),umid(2:10:end-1,1:10:end),wmid(1:10:end,2:10:end-1))
@@ -124,26 +174,33 @@ while max([max(max(af))-min(min(af)) max(max(au2))-min(min(au2)) max(max(au3))-m
 %     colorbar
 %     title('2nd order upwind da/dt')
     
-    pause(0.1)
+%     pause(0.1)
 %     saveas(figure(1),[pwd '/out/', RunID, ' ', num2str(ti), 'iterations.jpg'])
 %     saveas(figure(2),[pwd '/out/dadt ', RunID, ' ', num2str(ti), 'iterations.jpg'])
     end
+    % update time step
+    ti = ti+1;
     time = time +dt;
 end
-ti
-profile off
 
-function adv = advection(u,w,a,h,N,output)
-wp = w(2:end,2:end-1);
-wm = w(1:end-1,2:end-1);
-up = u(2:end-1,2:end);
-um = u(2:end-1,1:end-1);
+function adv = advection(u,w,a,h,output)
 
+wp  = w(2:end  ,2:end-1);
+wm  = w(1:end-1,2:end-1);
+up  = u(2:end-1,2:end  );
+um  = u(2:end-1,1:end-1);
+
+vx  = (up+um)./2;
+vz  = (wp+wm)./2;
+
+vxp = max(vx,0); vxm = min(vx,0);
+vzp = max(vz,0); vzm = min(vz,0);
+        
 agh                    = zeros(size(a)+2);
 agh(2:end-1,2:end-1)   = a;
 
-agh([1 2 end-1 end],:) = agh([3 3 end-2 end-2],:);
-agh(:,[1 2 end-1 end]) = agh(:,[3 3 end-2 end-2]);
+agh([1 2 end-1 end],:) = agh([4 3 end-2 end-3],:);
+agh(:,[1 2 end-1 end]) = agh(:,[4 3 end-2 end-3]);
 
 acc = agh(3:end-2,3:end-2);
 ajp = agh(4:end-1,3:end-2);  ajpp = agh(5:end-0,3:end-2);
@@ -164,46 +221,40 @@ switch output
               + abs(wm).*(-(ajp -acc)./h./8 + (acc - ajm)./h./4 - (ajm-ajmm)./h./8);
           
     case 'first upwind'
-        adv = zeros(size(a)-2);
-        vx = (up+um)./2;
-        vz = (wp+wm)./2;
-        vxp = max(vx,0); vxm = min(vx,0);
-        vzp = max(vz,0); vzm = min(vz,0);
-        axp = (agh(3:end-2,4:end-1)-agh(3:end-2,3:end-2))./h;
-        axm = (agh(3:end-2,3:end-2)-agh(3:end-2,2:end-3))./h;
-        azp = (agh(4:end-1,3:end-2)-agh(3:end-2,3:end-2))./h;
-        azm = (agh(3:end-2,3:end-2)-agh(2:end-3,3:end-2))./h;
+        
+        axp   = (aip-acc)./h;
+        axm   = (acc-aim)./h;
+        azp   = (ajp-acc)./h;
+        azm   = (acc-ajm)./h;
+        
         daxdt = vxp.*axm + vxm.*axp;
         dazdt = vzp.*azm + vzm.*azp;
-        adv = daxdt + dazdt;
+        
+        adv   = daxdt + dazdt;
         
     case 'second upwind'
-        adv = zeros(size(a)-2);
-        vx = (up+um)./2;
-        vz = (wp+wm)./2;
-        vxp = max(vx,0); vxm = min(vx,0);
-        vzp = max(vz,0); vzm = min(vz,0);
-        axp = (-3*agh(3:end-2,3:end-2)+4*agh(3:end-2,4:end-1)-agh(3:end-2,5:end))/2/h;
-        axm = (3*agh(3:end-2,3:end-2)-4*agh(3:end-2,2:end-3)+agh(3:end-2,1:end-4))/2/h;
-        azp = (-3*agh(3:end-2,3:end-2)+4*agh(4:end-1,3:end-2)-agh(5:end,3:end-2))/2/h;
-        azm = (3*agh(3:end-2,3:end-2)-4*agh(2:end-3,3:end-2)+agh(1:end-4,3:end-2))/2/h;
+
+        axp   = (-3*acc+4*aip-aipp)/2/h;
+        axm   = ( 3*acc-4*aim+aimm)/2/h;
+        azp   = (-3*acc+4*ajp-ajpp)/2/h;
+        azm   = ( 3*acc-4*ajm+ajmm)/2/h;
+        
         daxdt = vxp.*axm + vxm.*axp;
         dazdt = vzp.*azm + vzm.*azp;
-        adv = daxdt + dazdt;        
+        
+        adv   = daxdt + dazdt;        
         
     case 'third upwind'
-        adv = zeros(size(a)-2);
-        vx = (up+um)./2;
-        vz = (wp+wm)./2;
-        vxp = max(vx,0); vxm = min(vx,0);
-        vzp = max(vz,0); vzm = min(vz,0);
-        axp = (-2*agh(3:end-2,2:end-3)-3*agh(3:end-2,3:end-2)+6*agh(3:end-2,4:end-1)-agh(3:end-2,5:end))/6/h;
-        axm = (2*agh(3:end-2,4:end-1)+3*agh(3:end-2,3:end-2)-6*agh(3:end-2,2:end-3)+agh(3:end-2,1:end-4))/6/h;
-        azp = (-2*agh(2:end-3,3:end-2)-3*agh(3:end-2,3:end-2)+6*agh(4:end-1,3:end-2)-agh(5:end,3:end-2))/6/h;
-        azm = (2*agh(4:end-1,3:end-2)+3*agh(3:end-2,3:end-2)-6*agh(2:end-3,3:end-2)+agh(1:end-4,3:end-2))/6/h;
+
+        axp   = (-2*aim-3*acc+6*aip-aipp)/6/h;
+        axm   = ( 2*aip+3*acc-6*aim+aimm)/6/h;
+        azp   = (-2*ajm-3*acc+6*ajp-ajpp)/6/h;
+        azm   = ( 2*ajp+3*acc-6*ajm+ajmm)/6/h;
+        
         daxdt = vxp.*axm + vxm.*axp;
         dazdt = vzp.*azm + vzm.*azp;
-        adv = daxdt + dazdt;
+        
+        adv   = daxdt + dazdt;
             
 end  
 end
