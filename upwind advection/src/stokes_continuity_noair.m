@@ -165,16 +165,15 @@ Rsum = zeros(size(ii));
 IR = [IR, ii(:)']; 
 RR = [RR, Rsum(:)'];
 
-% % real boundary condition P(2,2) = 0
-II = [II,indP(2,2)]; JJ = [JJ,indP(2,2)];   AA = [AA, 1*Pscale];
-IR = [IR,indP(2,2)]; RR = [RR, 0];
+% % % real boundary condition P(2,2) = 0
+% II = [II,indP(2,2)]; JJ = [JJ,indP(2,2)];   AA = [AA, 1*Pscale];
+% IR = [IR,indP(2,2)]; RR = [RR, 0];
  
 %% Assemble coefficient matrix and right-hand side vector
 A       = sparse(II,JJ,AA,N_all,N_all);
 RHS     = sparse(IR,ones(size(IR)),RR,N_all,1);
 
-% A(indP(2,2),indP(2,2)) = 1*Pscale;
-% RHS(indP(2,2)) = 0;
+
 %% Scale system of equations (diagonal preconditioning)
 X           =  sqrt(abs(diag(A)));
 X           =  diag(sparse(1./X));

@@ -1,5 +1,5 @@
 % advection solvers, currently only fromm is vectorised
-function[dTdt,dMdt] = Advection_solver(vx_out,vz_out,vx_mid,vz_mid,T,Material,dz,dx,nx,nz,nx1,nz1,output)
+function[dTdt,dMdt] = Advection_solver(vx_out,vz_out,vx_mid,vz_mid,T,Material,dz,dx,nx,nz,nx1,nz1,AdvRegime)
 w = vz_out(1:nz1,:); % vz
 u = vx_out(:,1:nx1); % vx
 
@@ -43,7 +43,7 @@ bip = bgh(3:end-2,4:end-1);  bipp = bgh(3:end-2,5:end-0);
 bim = bgh(3:end-2,2:end-3);  bimm = bgh(3:end-2,1:end-4);
 
 
-switch output
+switch AdvRegime
     case 'fromm'
 
         dTdt  =     up .*(-(aipp-aip)./dx./8 + (aip + acc)./dx./2 + (acc-aim )./dx./8) ...
