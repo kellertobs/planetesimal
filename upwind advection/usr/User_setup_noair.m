@@ -2,8 +2,9 @@
 % valid for 2D rectangular grid
 clear; 
 close all
-
-RunID       = 'high Rayleigh test';   % run identifier
+profile on
+% profile off
+RunID       = 'vectorised test 4';   % run identifier
 
 %% setup model domain (user editable)
 L           = 500*1e3;                          % length of x domain
@@ -20,13 +21,10 @@ rplume      = 100000;                           % radius of plume (if modelling 
 %% setup physical parameters
 gz          = 10;                               % vertical/z gravitational constant 
 gx          = 0;                                % horizontal/x gravitational constant
-Ambtype    = 'constant'                        % constant ambient background temperature
-Ambtype    = 'linear'                          % linear temperaure profile between top and bottom
+% Ambtype    = 'constant'                        % constant ambient background temperature
+% Ambtype    = 'linear'                          % linear temperaure profile between top and bottom
 Ambtype     = 'gaussian'
 
-% plumetype   = 'wide'
-% plumetype   = 'central'
-plumetype   = 'none'
 
 
 %% setup material parameters
@@ -73,10 +71,23 @@ bcbottom        = -1;
 
 Ra = Rho0*Alpha_mantle*300*(L^3)*gz/Eta_mantle/(Kappa_mantle/Rho0/Cp_mantle)
 %% Loop settings
-nt              = 200;      % number of loop iterations
+% % =================================================================% %
+% choose temperature solver regime %
+% Tsolver         = 'implicit';
+Tsolver         = 'explicit'; %explicit recommended
+% % =================================================================% %
+% choose advection regime %
+AdvRegime       = 'fromm';
+% AdvRegime       = 'first upwind';
+% AdvRegime       = 'second upwind';
+% AdvRegime       = 'third upwind';
+% % =================================================================% %
+
+nt              = 1000;      % number of loop iterations
 vpratio         = 1/3;      % Weight of averaged velocity for moving markers
 dt              = 1e10;     % initial time-stepping (variable within code)
-CFL             = 0.5;        % Courant number to limit advection time step
+CFL             = 0.9;        % Courant number to limit advection time step
+theta           = 0.5;      % 0 = backwards Euler, 0.5 = Crank-Nicholson, 1 = Forward Euler
 dtkoef          = 1.2;      % timestep increment
 dTmax           = 50;       % maximum temperature increase
 dsubgridt       = 0;        % subgrid for temperature advection, 1=with, 0=without
@@ -90,3 +101,4 @@ cm = cbrewer('seq', 'YlOrRd',30); % colour map
 addpath('../src')
 run('preloop_initialisation_noair');
 run('main_loop');
+profile report
