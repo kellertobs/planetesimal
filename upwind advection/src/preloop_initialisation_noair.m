@@ -22,7 +22,7 @@ switch Ambtype
     case 'gaussian'
         radius = L/7;
         T_mid = zeros(Nz,Nx)+T_top; 
-        T_mid = T_mid + 500.*exp(- (xp2d-L/2).^2./radius.^2 - (zp2d-L/2).^2./radius.^2 );
+        T_mid = T_mid + (T_bot-T_top+300).*exp(- (xp2d-L/2).^2./radius.^2 - (zp2d-L/2).^2./radius.^2 );
         T_mid(Nz,:) = T_bot;
 end
 
@@ -40,13 +40,6 @@ end
     k_vx    = zeros(Nz,Nx); k_vz = zeros(Nz,Nx);
     Alpha_vx= zeros(Nz,Nx); Alpha_vz = zeros(Nz,Nx);
 
-    
-    pcolor(xp(2:nx1),zp(2:nz1),Material(2:nx1,2:nz1))
-    colormap(flipud(cm))
-    axis ij image;
-    shading flat; 
-    colorbar
-    title('colormap of Temperature')
 
 %% initialise arrays
 Epsxz           = zeros(Nz,Nx);     % strain rate on the ordinary grid

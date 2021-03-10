@@ -9,7 +9,7 @@
     axis ij image;
     title('colormap of material')
     hold on
-    quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
 
     subplot(3,3,2);
     pcolor(xp(2:nx1),zp(2:nz1),Rho_mid(2:nz1,2:nx1));
@@ -19,7 +19,7 @@
     colorbar
     title('colormap of RHO')
     hold on
-    quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
     
     subplot(3,3,3)
     pcolor(xp(2:nx1),zp(2:nz1),P_out(2:nz1,2:nx1))
@@ -29,17 +29,17 @@
     colorbar
     title('colormap of pressure')
     hold on
-    quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
     
     subplot(3,3,4)
-    pcolor(xp(2:nx1),zp(2:nz1),T_mid(2:nx1,2:nz1))
+    pcolor(xp(2:nx1),zp(2:nz1),T_out(2:nx1,2:nz1))
     colormap(subplot(3,3,4),flipud(cm))
     axis ij image;
     shading flat; 
     colorbar
     title('colormap of Temperature')
     hold on
-    contour(xp(2:nx1),zp(2:nz1),T_diff(2:nx1,2:nz1),[T_top:(T_bot+300-T_top)/10:T_bot+300],'k')
+    contour(xp(2:nx1),zp(2:nz1),T_mid(2:nx1,2:nz1),[T_top:(T_bot+300-T_top)/10:T_bot+300],'k')
     
     subplot(3,3,5);
     pcolor(xp(2:end-1),zp(2:end-1),Hs(2:end-1,2:end-1)); 
@@ -73,7 +73,7 @@
     
     
     
-    saveas(figure(1),['../out/', RunID, '/Ti0.jpg'])
+%     saveas(figure(1),['../out/', RunID, '/Ti0.jpg'])
     else
     
     % output plots
@@ -87,7 +87,7 @@
     axis ij image;
     title('colormap of material')
     hold on
-    quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
 
     subplot(3,3,2);
     pcolor(xp(2:nx1),zp(2:nz1),Rho_mid(2:nz1,2:nx1));
@@ -97,7 +97,7 @@
     colorbar
     title('colormap of RHO')
     hold on
-    quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')   
     
     subplot(3,3,3)
     pcolor(xp(2:nx1),zp(2:nz1),P_out(2:nz1,2:nx1))
@@ -107,17 +107,18 @@
     colorbar
     title('colormap of pressure')
     hold on
-    quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
     
     subplot(3,3,4)
-    pcolor(xp(2:nx1),zp(2:nz1),T_mid(2:nx1,2:nz1))
+    pcolor(xp(2:nx1),zp(2:nz1),T_out(2:nx1,2:nz1))
     colormap(subplot(3,3,4),flipud(cm))
+    caxis([1200 1800])
     axis ij image;
     shading flat; 
     colorbar
     title('colormap of Temperature')
     hold on
-    contour(xp(2:nx1),zp(2:nz1),T_diff(2:nx1,2:nz1),[T_top:(T_bot+300-T_top)/10:T_bot+300],'k')
+    contour(xp(2:nx1),zp(2:nz1),T_out(2:nx1,2:nz1),[T_top:(T_bot+300-T_top)/10:T_bot+300],'k')
     
     subplot(3,3,5);
     pcolor(xp(2:end-1),zp(2:end-1),Hs(2:end-1,2:end-1)); 
@@ -153,6 +154,4 @@
     
     
     
-    saveas(figure(1),['../out/', RunID, '/Ti', num2str(ti), '.jpg'])
-    ti
     end
