@@ -16,11 +16,14 @@
 switch Ambtype
     case 'constant'
         T_mid = zeros(Nz,Nx)+T_top; 
-        T_mid(Nz,:) = T_bot;
+        T_mid(Nz:nz-1,:) = T_bot;
+        T_mid(Nz,:) = T_bot+300;
     case 'linear'
         T_mid = T_top + abs(zp2d)./D.*(T_bot-T_top);
     case 'gaussian'
         radius = L/7;
+%         T_amp = T_bot-T_top+300;
+%         T_amp = 600;
         T_mid = zeros(Nz,Nx)+T_top; 
         T_mid = T_mid + (T_bot-T_top+300).*exp(- (xp2d-L/2).^2./radius.^2 - (zp2d-L/2).^2./radius.^2 );
         T_mid(Nz,:) = T_bot;
@@ -49,7 +52,7 @@ Sigxx           = Sigxz;            % deviatoric stress the middle of grid/press
 Hs              = Sigxx;            % shear heating, on the pressure nodes
 Ha              = Hs;               % adiabatic heating, on pressure nodes
 Hr              = Hs;               % radiogenic heating
-
+adv_T = 0;     lapl_T = 0;   dMdt = 0;
 
 %% create indexing system
 Number  = numsetup(Nz,Nx);  % ordinary grid

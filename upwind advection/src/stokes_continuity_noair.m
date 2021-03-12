@@ -166,8 +166,8 @@ IR = [IR, ii(:)'];
 RR = [RR, Rsum(:)'];
 
 % % % real boundary condition P(2,2) = 0
-% II = [II,indP(2,2)]; JJ = [JJ,indP(2,2)];   AA = [AA, 1*Pscale];
-% IR = [IR,indP(2,2)]; RR = [RR, 0];
+II = [II,indP(2,2)]; JJ = [JJ,indP(2,2)];   AA = [AA, 1*Pscale];
+IR = [IR,indP(2,2)]; RR = [RR, 0];
  
 %% Assemble coefficient matrix and right-hand side vector
 A       = sparse(II,JJ,AA,N_all,N_all);

@@ -2,6 +2,7 @@
 % valid for 2D rectangular grid
 clear; 
 close all
+profile off
 profile on
 % profile off
 RunID       = 'vectorised test 4';   % run identifier
@@ -21,9 +22,9 @@ rplume      = 100000;                           % radius of plume (if modelling 
 %% setup physical parameters
 gz          = 10;                               % vertical/z gravitational constant 
 gx          = 0;                                % horizontal/x gravitational constant
-% Ambtype    = 'constant'                        % constant ambient background temperature
+Ambtype    = 'constant'                        % constant ambient background temperature
 % Ambtype    = 'linear'                          % linear temperaure profile between top and bottom
-Ambtype     = 'gaussian'
+% Ambtype     = 'gaussian'
 
 
 
@@ -86,9 +87,9 @@ AdvRegime       = 'fromm';
 nt              = 1000;      % number of loop iterations
 vpratio         = 1/3;      % Weight of averaged velocity for moving markers
 dt              = 1e10;     % initial time-stepping (variable within code)
-CFL             = 0.9;        % Courant number to limit advection time step
+CFL             = 1/5;        % Courant number to limit advection time step
 theta           = 0.5;      % 0 = backwards Euler, 0.5 = Crank-Nicholson, 1 = Forward Euler
-dtkoef          = 1.2;      % timestep increment
+% dtkoef          = 1.2;      % timestep increment
 dTmax           = 50;       % maximum temperature increase
 dsubgridt       = 0;        % subgrid for temperature advection, 1=with, 0=without
 Restol          = 1e-3;     %residual tolerance

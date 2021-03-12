@@ -1,6 +1,9 @@
 % Update Temperature
-adv_T0 = adv_T;     lapl_T0 = lapl_T;   dMdt0 = dMdt;
-T0 = T_mid;         Material0 = Material;
+function [Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,T_out,lapl_T0,adv_T0,dMdt0,Material] =...
+    Update_Temperature(Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,nx1,nz1,dx,dz,...
+    vx_out,vz_out,vx_mid,vz_mid,Eta_out,Eta_mid,Rho_vz,Alpha_mid,T_mid,gz,...
+    Nx,Nz,k_vx,k_vz,Rho_mid,Cp_mid,Hr,T_top,dt,Tsolver,Material,ti,lapl_T0,adv_T0,dMdt0,AdvRegime)
+
 Hxz = Sigxx;
 %% calculate stresses and shear/adiabatic heating
 Epsxz(1:nz1,1:nx1) = 1/2 .* ((vx_out(2:Nz,1:nx1) - vx_out(1:nz1,1:nx1))./dz...
@@ -25,33 +28,30 @@ Ha(2:nz1,2:nx1)         = (vz_out(2:nz1,2:nx1) + vz_out(1:nz1-1,2:nx1))./2 .* (R
 %% Solve temperature diffusion
 switch Tsolver
     case 'explicit'
+        T_out = zeros(size(T_mid));
         %assume average thermal conductivity for now
         Kappa0 = mode(k_vx(:)) / mean(Rho_mid(:)) / mode(Cp_mid(:));
         icx = 2:Nx-1; icz = 2:Nz-1;
-        if ti > 1
+        if ti > 0
             for it = 1:10
                 lapl_T = Kappa0*(diff(T_mid(:,icx),2,1) + diff(T_mid(icz,:),2,2))/dz/dx;... % finite differences
-                    + (Hr(2:end-1,2:end-1) + Hs(2:end-1,2:end-1) + Ha(2:end-1,2:end-1))./mean(Rho_mid(:))./ Cp_mantle; % + internal sources
+                    + (Hr(2:end-1,2:end-1) + Hs(2:end-1,2:end-1) + Ha(2:end-1,2:end-1))./mean(Rho_mid(:))./ mode(Cp_mid(:)); % + internal sources
                 
-%                 adv_T = advection2(vx_out,vz_out,T_mid,dx,dz,AdvRegime);
-%                 dMdt  = advection2(vx_out,vz_out,Material,dx,dz,AdvRegime);
-                [adv_T,dMdt] = advection2(vx_out,vz_out,T_mid,Material,dx,dz,AdvRegime);
-                T_mid(2:end-1,2:end-1)  =  T0(2:end-1,2:end-1)...
-                    + (theta.*(lapl_T-adv_T)+(1-theta).*(lapl_T-adv_T))*dt;
-                Material(2:end-1,2:end-1)  =  Material0(2:end-1,2:end-1) - (theta.*dMdt+(1-theta).*dMdt0)*dt;
+                adv_T = advection2(vx_out,vz_out,T_mid,dx,dz,AdvRegime);
+                dMdt  = advection2(vx_out,vz_out,Material,dx,dz,AdvRegime);
                 
             end
-            T_out = T_mid;
-            Material = round(Material);
-        else
-            lapl_T  = Kappa0*(diff(T_mid(:,icx),2,1) + diff(T_mid(icz,:),2,2))/dz/dx;... % finite differences
-                + (Hr(2:end-1,2:end-1) + Hs(2:end-1,2:end-1) +...
-                Ha(2:end-1,2:end-1))./mean(Rho_mid(:))./ Cp_mantle; % + internal sources 
-            [adv_T,dMdt] = advection2(vx_out,vz_out,T_mid,Material,dx,dz,AdvRegime);
-%             adv_T   = advection2(vx_out,vz_out,T_mid,dx,dz,AdvRegime);
-%             dMdt    = advection2(vx_out,vz_out,Material,dx,dz,AdvRegime);
-            T_out = T_mid;
         end
+        if ti == 1
+            T_out(icz,icx)   = T_mid(icz,icx) + (lapl_T - adv_T).*dt;
+            Material(icz,icx) = Material(icz,icx) - dMdt.*dt;
+            
+        else
+            T_out(icz,icx)   = T_mid(icz,icx) + ((lapl_T+lapl_T0) - (adv_T0+adv_T))./2.*dt;
+            Material(icz,icx) = Material(icz,icx) - (dMdt+dMdt0)./2.*dt;
+        end
+        lapl_T0 = lapl_T; adv_T0 = adv_T; dMdt0 = dMdt;
+        
         T_out(1,:) = T_top;
         T_out(end,:) = T_mid(end,:);
         T_out(:,1) = T_out(:,2);
