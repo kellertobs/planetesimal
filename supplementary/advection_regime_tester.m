@@ -2,7 +2,7 @@
 clear all
 % close all
 % profile off
-% profile on
+
 % set run options
 % RunID       = 'gaussian_rotation';
 movement    = 'translation';

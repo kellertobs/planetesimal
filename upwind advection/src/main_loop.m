@@ -20,9 +20,9 @@ for ti = 1:nt
     T_vz(1,:)   = 2*T_top   - T_vz(2,:);
     
     % lower boundary, constant temperature
-    T_mid(end,:)= 2*(T_bot)   - T_mid(nz,:);
-    T_vx(end,:)   = 2*(T_bot)   - T_vx(nz1,:);
-    T_vz(end,:) = 2*(T_bot)   - T_vz(nz,:);
+    T_mid(end,:)= 2*(T_bot+300)   - T_mid(nz,:);
+    T_vx(end,:)   = 2*(T_bot+300)   - T_vx(nz1,:);
+    T_vz(end,:) = 2*(T_bot+300)   - T_vz(nz,:);
     %       T_mid(end,:) = T_bot;
     %       T_vx(end,:) = T_bot;
     %       T_vz(end,:) = T_bot;
@@ -64,14 +64,15 @@ for ti = 1:nt
     dt = min(dt2,dt1);
     
     %update temperature by diffusion and advection
-    [Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,T_out,lapl_T0,adv_T0,dMdt0,Material] =...
-        Update_Temperature(Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,nx1,nz1,dx,dz,...
-        vx_out,vz_out,vx_mid,vz_mid,Eta_out,Eta_mid,Rho_vz,Alpha_mid,T_mid,gz,...
-        Nx,Nz,k_vx,k_vz,Rho_mid,Cp_mid,Hr,T_top,dt,Tsolver,Material,ti,lapl_T0,adv_T0,dMdt0,AdvRegime);
+    run('Update_Temperature')
+%     [Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,T_out,lapl_T0,adv_T0,dMdt0,Material] =...
+%         Update_Temperature(Epsxz,Sigxz,Epsxx,Sigxx,Hs,Ha,nx1,nz1,dx,dz,...
+%         vx_out,vz_out,vx_mid,vz_mid,Eta_out,Eta_mid,Rho_vz,Alpha_mid,T_mid,gz,...
+%         Nx,Nz,k_vx,k_vz,Rho_mid,Cp_mid,Hr,T_top,dt,Tsolver,Material,ti,lapl_T0,adv_T0,dMdt0,AdvRegime);
     
     time = dt+time;
     
-    if ~mod(ti,10) || ti==1
+    if ~mod(ti,20) || ti==1
         run('plotfigures2')
         %     profile report
         %         saveas(figure(1),['../out/', RunID, '/Ti', num2str(ti), '.jpg'])
@@ -83,3 +84,4 @@ for ti = 1:nt
     
 end
 
+% profile report
