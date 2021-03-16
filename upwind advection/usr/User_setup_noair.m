@@ -1,9 +1,9 @@
 % Planetesimal user startup
 % valid for 2D rectangular grid
 clear; 
-close all
-profile off
-profile on
+% close all
+% profile off
+% profile on
 % profile off
 RunID       = 'vectorised test 4';   % run identifier
 
@@ -24,7 +24,7 @@ gz          = 10;                               % vertical/z gravitational const
 gx          = 0;                                % horizontal/x gravitational constant
 Ambtype    = 'constant'                        % constant ambient background temperature
 % Ambtype    = 'linear'                          % linear temperaure profile between top and bottom
-% Ambtype     = 'gaussian'
+Ambtype     = 'gaussian'
 
 
 
@@ -75,7 +75,7 @@ Ra = Rho0*Alpha_mantle*300*(L^3)*gz/Eta_mantle/(Kappa_mantle/Rho0/Cp_mantle)
 % % =================================================================% %
 % choose temperature solver regime %
 % Tsolver         = 'implicit';
-Tsolver         = 'explicit'; %explicit recommended
+Tsolver         = 'explicit'; %explicit recommended, implicit currently isn't compatible
 % % =================================================================% %
 % choose advection regime %
 AdvRegime       = 'fromm';
@@ -87,7 +87,7 @@ AdvRegime       = 'fromm';
 nt              = 1000;      % number of loop iterations
 vpratio         = 1/3;      % Weight of averaged velocity for moving markers
 dt              = 1e10;     % initial time-stepping (variable within code)
-CFL             = 1/5;        % Courant number to limit advection time step
+CFL             = 1/4;        % Courant number to limit advection time step
 theta           = 0.5;      % 0 = backwards Euler, 0.5 = Crank-Nicholson, 1 = Forward Euler
 % dtkoef          = 1.2;      % timestep increment
 dTmax           = 50;       % maximum temperature increase
