@@ -1,13 +1,12 @@
 %main model loop, including functions below
 time            = 0;     % initialise time loop
-lapl_T0 = 0; adv_T0 = 0; dMdt0 = 0;
-%% main loop
-for ti = 1:nt
-    
+lapl_T0 = 0; adv_T0 = 0; dMdt0 = 0;    
     Alpha_vx(:,2:nx1)   = (Alpha_mid(:,2:nx1)+Alpha_mid(:,1:nx))./2;
     Alpha_vz(2:nz1,:)   = (Alpha_mid(2:nz1,:)+Alpha_mid(1:nz,:))./2;
     k_vx(:,2:nx1)       = (Kappa_mid(:,2:nx1)+Kappa_mid(:,1:nx))./2;
     k_vz(2:nz1,:)       = (Kappa_mid(2:nz1,:)+Kappa_mid(1:nz,:))./2;
+%% main loop
+for ti = 1:nt
     
     % interpolate temperature onto staggered grid
     T_vx(:,2:nx1) = (T_mid(:,2:nx1)+T_mid(:,1:nx))./2;
@@ -15,24 +14,19 @@ for ti = 1:nt
     
     % Apply thermal boundary condition to interpolated nodes
     % upper boundary, constant temperature
-    T_mid(1,:)   = 2*T_top   - T_mid(3,:);
     T_vx(1,:)    = 2*T_top   - T_vx(2,:);
     T_vz(1,:)   = 2*T_top   - T_vz(2,:);
     
     % lower boundary, constant temperature
-    T_mid(end,:)= 2*(T_bot+300)   - T_mid(nz,:);
     T_vx(end,:)   = 2*(T_bot+300)   - T_vx(nz1,:);
     T_vz(end,:) = 2*(T_bot+300)   - T_vz(nz,:);
-    %       T_mid(end,:) = T_bot;
     %       T_vx(end,:) = T_bot;
     %       T_vz(end,:) = T_bot;
     
     % left boundary, insulating boundary
-    T_mid(2:nz1,2)  = T_mid(2:nz1,3);
     T_vx(:,1)       = T_vx(:,2);
     T_vz(1:nz1,1)   = T_vz(1:nz1,2);
     % right boundary, insulating boundary
-    T_mid(2:nz1,nx1)= T_mid(2:nz1,nx);
     T_vx(:,nx1)     = T_vx(:,nx);
     T_vz(1:nz1,Nx)  = T_vz(1:nz1,nx1);
     %     plume beneath lithosphere
