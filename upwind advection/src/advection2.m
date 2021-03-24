@@ -1,4 +1,4 @@
-function [adva,advb] = advection2(vx_out,vz_out,a,b,dx,dz,output)
+function [adva] = advection2(vx_out,vz_out,a,dx,dz,output)
 w = vz_out(1:end-1,:); % vz
 u = vx_out(:,1:end-1); % vx
 
@@ -27,19 +27,19 @@ ajm = agh(2:end-3,3:end-2);  ajmm = agh(1:end-4,3:end-2);
 aip = agh(3:end-2,4:end-1);  aipp = agh(3:end-2,5:end-0);
 aim = agh(3:end-2,2:end-3);  aimm = agh(3:end-2,1:end-4);
 
-bgh                    = zeros(size(b)+2);
-bgh(2:end-1,2:end-1)   = b;
-
-% agh([1 2 end-1 end],:) = agh([4 3 end-2 end-3],:);
-% agh(:,[1 2 end-1 end]) = agh(:,[4 3 end-2 end-3]);
-bgh([1 2 end-1 end],:) = bgh([3 3 end-2 end-2],:);
-bgh(:,[1 2 end-1 end]) = bgh(:,[3 3 end-2 end-2]);
-
-bcc = bgh(3:end-2,3:end-2);
-bjp = bgh(4:end-1,3:end-2);  bjpp = bgh(5:end-0,3:end-2);
-bjm = bgh(2:end-3,3:end-2);  bjmm = bgh(1:end-4,3:end-2);
-bip = bgh(3:end-2,4:end-1);  bipp = bgh(3:end-2,5:end-0);
-bim = bgh(3:end-2,2:end-3);  bimm = bgh(3:end-2,1:end-4);
+% bgh                    = zeros(size(b)+2);
+% bgh(2:end-1,2:end-1)   = b;
+% 
+% % agh([1 2 end-1 end],:) = agh([4 3 end-2 end-3],:);
+% % agh(:,[1 2 end-1 end]) = agh(:,[4 3 end-2 end-3]);
+% bgh([1 2 end-1 end],:) = bgh([3 3 end-2 end-2],:);
+% bgh(:,[1 2 end-1 end]) = bgh(:,[3 3 end-2 end-2]);
+% 
+% bcc = bgh(3:end-2,3:end-2);
+% bjp = bgh(4:end-1,3:end-2);  bjpp = bgh(5:end-0,3:end-2);
+% bjm = bgh(2:end-3,3:end-2);  bjmm = bgh(1:end-4,3:end-2);
+% bip = bgh(3:end-2,4:end-1);  bipp = bgh(3:end-2,5:end-0);
+% bim = bgh(3:end-2,2:end-3);  bimm = bgh(3:end-2,1:end-4);
 
 switch output
     
@@ -52,9 +52,6 @@ switch output
             + ((aip+acc)./2.*up - (aim+acc)./2.*um)./dx ...
             - acc.*(diff(w(:,2:end-1),1,1)./dz + diff(u(2:end-1,:),1,2)./dx);
         
-        advb = ((bjp+bcc)./2.*wp - (bjm+acc)./2.*wm)./dz ...
-            + ((bip+bcc)./2.*up - (bim+bcc)./2.*um)./dx ...
-            - bcc.*(diff(w(:,2:end-1),1,1)./dz + diff(u(2:end-1,:),1,2)./dx);
         
     case 'fromm'        
         adva   =     up .*(-(aipp-aip)./dx./8 + (aip + acc)./dx./2 + (acc-aim )./dx./8) ...
@@ -67,15 +64,6 @@ switch output
             + abs(wm).*(-(ajp -acc)./dz./8 + (acc - ajm)./dz./4 - (ajm-ajmm)./dz./8) ...
             - acc.*(diff(w(:,2:end-1),1,1)./dz + diff(u(2:end-1,:),1,2)./dx);
         
-        advb   =     up .*(-(aipp-aip)./dx./8 + (bip + bcc)./dx./2 + (bcc-bim )./dx./8) ...
-            - abs(up).*(-(bipp-bip)./dx./8 + (bip - bcc)./dx./4 - (bcc-bim )./dx./8) ...
-            -     um .*(-(bip -bcc)./dx./8 + (bcc + bim)./dx./2 + (bim-bimm)./dx./8) ...
-            + abs(um).*(-(bip -bcc)./dx./8 + (bcc - bim)./dx./4 - (bim-bimm)./dx./8) ...
-            +     wp .*(-(bjpp-bjp)./dz./8 + (bjp + bcc)./dz./2 + (bcc-bjm )./dz./8) ...
-            - abs(wp).*(-(bjpp-bjp)./dz./8 + (bjp - bcc)./dz./4 - (bcc-bjm )./dz./8) ...
-            -     wm .*(-(bjp -bcc)./dz./8 + (bcc + bjm)./dz./2 + (bjm-bjmm)./dz./8) ...
-            + abs(wm).*(-(bjp -bcc)./dz./8 + (bcc - bjm)./dz./4 - (bjm-bjmm)./dz./8) ...
-            - bcc.*(diff(w(:,2:end-1),1,1)./dz + diff(u(2:end-1,:),1,2)./dx);
         
     case 'first upwind'       
         axp   = (aip-acc)./dx;
@@ -88,15 +76,6 @@ switch output
         
         adva   = daxdt + dazdt;
         
-        bxp   = (bip-bcc)./dx;
-        bxm   = (bcc-bim)./dx;
-        bzp   = (bjp-bcc)./dz;
-        bzm   = (bcc-bjm)./dz;
-        
-        dbxdt = vxp.*bxm + vxm.*bxp;
-        dbzdt = vzp.*bzm + vzm.*bzp;
-        
-        advb   = dbxdt + dbzdt;
         
     case 'second upwind'        
         axp   = (-3*acc+4*aip-aipp)/2/dx;
@@ -109,15 +88,6 @@ switch output
         
         adva   = daxdt + dazdt;
         
-        bxp   = (-3*bcc+4*bip-bipp)/2/dx;
-        bxm   = ( 3*bcc-4*bim+bimm)/2/dx;
-        bzp   = (-3*bcc+4*bjp-bjpp)/2/dz;
-        bzm   = ( 3*bcc-4*bjm+bjmm)/2/dz;
-        
-        dbxdt = vxp.*bxm + vxm.*bxp;
-        dbzdt = vzp.*bzm + vzm.*bzp;
-        
-        advb   = dbxdt + dbzdt;
         
     case 'third upwind'        
         axp   = (-2*aim-3*acc+6*aip-aipp)/6/dx;
@@ -130,15 +100,6 @@ switch output
         
         adva   = daxdt + dazdt;
         
-        bxp   = (-2*bim-3*bcc+6*bip-bipp)/6/dx;
-        bxm   = ( 2*bip+3*bcc-6*bim+bimm)/6/dx;
-        bzp   = (-2*bjm-3*bcc+6*bjp-bjpp)/6/dz;
-        bzm   = ( 2*bjp+3*bcc-6*bjm+bjmm)/6/dz;
-        
-        dbxdt = vxp.*bxm + vxm.*bxp;
-        dbzdt = vzp.*bzm + vzm.*bzp;
-        
-        advb   = dbxdt + dbzdt;
         
 end
 end
