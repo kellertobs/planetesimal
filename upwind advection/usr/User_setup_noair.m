@@ -1,17 +1,17 @@
 % Planetesimal user startup
 % valid for 2D rectangular grid
 clear; 
-% close all
+close all
 % profile off
 % profile on
 % profile off
-RunID       = 'vectorised test 4';   % run identifier
+RunID       = '200x200 imping plume fromm';   % run identifier
 
 %% setup model domain (user editable)
 L           = 500*1e3;                          % length of x domain
 D           = 500*1e3;                          % length of z domain
-nx          = 100;                               % number of real x block nodes
-nz          = 100;                               % number of real z block nodes
+nx          = 200;                               % number of real x block nodes
+nz          = 200;                               % number of real z block nodes
 nx1         = nx+1;                             % number of x gridpoints
 nz1         = nz+1;                             % number of z gridpoints
 Nx          = nx+2;                             % number of x edgepoints (+ ghost)
@@ -24,7 +24,7 @@ gz          = 10;                               % vertical/z gravitational const
 gx          = 0;                                % horizontal/x gravitational constant
 Ambtype    = 'constant'                        % constant ambient background temperature
 % Ambtype    = 'linear'                          % linear temperaure profile between top and bottom
-Ambtype     = 'gaussian'
+% Ambtype     = 'gaussian'
 
 
 
@@ -42,7 +42,7 @@ Hr_mantle   =   2e-8;   % Radiogenic heat production
 switch Ambtype
 %           bot      ||          top         ||
 case 'constant'
-T_bot       =   1500;   T_top       =   1200; 
+T_bot       =   1200;   T_top       =   1200; 
 case 'linear'
 T_bot       =   1500;   T_top       =   1200;  
 case 'gaussian'
@@ -78,13 +78,15 @@ Ra = Rho0*Alpha_mantle*300*(L^3)*gz/Eta_mantle/(Kappa_mantle/Rho0/Cp_mantle)
 Tsolver         = 'explicit'; %explicit recommended, implicit currently isn't compatible
 % % =================================================================% %
 % choose advection regime %
-AdvRegime       = 'fromm';
-% AdvRegime       = 'first upwind';
-% AdvRegime       = 'second upwind';
-% AdvRegime       = 'third upwind';
+AdvRegime       = 'fromm'
+% AdvRegime       = 'first upwind'
+% AdvRegime       = 'second upwind'
+% AdvRegime       = 'third upwind'
+% AdvRegime       = 'flxdiv'
 % % =================================================================% %
 
-nt              = 1000;      % number of loop iterations
+nt              = 10000;      % number of loop iterations
+max_time        = 7e14;
 vpratio         = 1/3;      % Weight of averaged velocity for moving markers
 dt              = 1e10;     % initial time-stepping (variable within code)
 CFL             = 1/4;        % Courant number to limit advection time step
@@ -94,7 +96,9 @@ dTmax           = 50;       % maximum temperature increase
 dsubgridt       = 0;        % subgrid for temperature advection, 1=with, 0=without
 Restol          = 1e-3;     %residual tolerance
 
-
+% % =======
+% test a maximum time
+% max_time = D/2/2e-9;
 
 if ~exist(['../out/',RunID],'dir'); mkdir(['../out/',RunID]); end
 addpath('../usr/cbrewer');
@@ -102,4 +106,4 @@ cm = cbrewer('seq', 'YlOrRd',30); % colour map
 addpath('../src')
 run('preloop_initialisation_noair');
 run('main_loop');
-profile report
+% profile report

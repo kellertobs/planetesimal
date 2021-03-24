@@ -1,7 +1,6 @@
 function [P_out,vx_out,vz_out,vx_mid,vz_mid] = stokes_continuity_noair(nx,nz,Nx,Nz,...
     nx1,nz1,dx,dz,Pscale,...
-    Eta_out,Eta_mid,Rho_vx,Rho_vz,gx,gz,bctop,bcbottom,bcleft,bcright)
-cc = 0.000000000000001;
+    Eta_out,Eta_mid,Rho_vx,Rho_vz,gx,gz,bctop,bcbottom,bcleft,bcright,cc)
 
 NP      = Nx*Nz; % total number of P nodes to solve + ghost nodes
 NU      = Nx*Nz; % total number of vx nodes to solve + ghost nodes
@@ -166,9 +165,10 @@ Rsum = zeros(size(ii));
 IR = [IR, ii(:)'];
 RR = [RR, Rsum(:)'];
 
-% % % real boundary condition P(2,2) = 0
+% % % real boundary condition P(2,2) = Rho*gz*dz/2
+RHOb = 3300;
 II = [II,indP(2,2)]; JJ = [JJ,indP(2,2)];   AA = [AA, 1*Pscale];
-IR = [IR,indP(2,2)]; RR = [RR, 0];
+IR = [IR,indP(2,2)]; RR = [RR, RHOb*dz/2*gz];
 
 %% Assemble coefficient matrix and right-hand side vector
 A       = sparse(II,JJ,AA,N_all,N_all);
@@ -182,16 +182,18 @@ X           =  diag(sparse(1./X));
 A           =  X*A*X;
 RHS         =  X*RHS;
 %
-tic
+% tic
 % %% Solve stokes matrix and convert output vector to matrices
 c = X*(A\RHS); %get solution vector
 % c = A\RHS;
-ccp = toc
-
-figure(6)
-semilogx(cc,ccp,'*')
-ylabel('time elapsed')
-hold on
+% ccp = toc;
+% 
+% figure(6)
+% subplot(1,2,1)
+% semilogx(cc,ccp,'*')
+% ylabel('time elapsed')
+% xlabel('log(cc)')
+% hold on
 
 %extrapolate into individual matrices
 P_out = reshape(c(indP(:)),Nz,Nx).*Pscale;%output pressure
@@ -199,10 +201,10 @@ vx_out = reshape(c(indvx(:)),Nz,Nx);
 vz_out = reshape(c(indvz(:)),Nz,Nx);
 
 
-figure(5)
-imagesc(1:1:nx,1:1:nz,P_out(2:end-1,2:end-1)./1e6)
-colorbar
-title('Pressure MPa')
+% figure(5)
+% imagesc(1:1:nx,1:1:nz,P_out(2:end-1,2:end-1)./1e6)
+% colorbar
+% title('Pressure MPa')
 
 % averaging velocities on centre nodes
 vx_mid = zeros(Nz,Nx);
