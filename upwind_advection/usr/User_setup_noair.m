@@ -5,13 +5,13 @@ close all
 % profile off
 % profile on
 % profile off
-RunID       = '200x200 imping plume fromm';   % run identifier
+RunID       = 'showoff mantle convection';   % run identifier
 
 %% setup model domain (user editable)
 L           = 500*1e3;                          % length of x domain
 D           = 500*1e3;                          % length of z domain
-nx          = 200;                               % number of real x block nodes
-nz          = 200;                               % number of real z block nodes
+nx          = 100;                               % number of real x block nodes
+nz          = 100;                               % number of real z block nodes
 nx1         = nx+1;                             % number of x gridpoints
 nz1         = nz+1;                             % number of z gridpoints
 Nx          = nx+2;                             % number of x edgepoints (+ ghost)
@@ -86,7 +86,7 @@ AdvRegime       = 'fromm'
 % % =================================================================% %
 
 nt              = 10000;      % number of loop iterations
-max_time        = 7e14;
+max_time        = 8e14;
 vpratio         = 1/3;      % Weight of averaged velocity for moving markers
 dt              = 1e10;     % initial time-stepping (variable within code)
 CFL             = 1/4;        % Courant number to limit advection time step

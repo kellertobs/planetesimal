@@ -13,31 +13,42 @@
 
 %% setup material grids
 % temperature
+D_air = round(Nz/10);
+T_mid = zeros(Nz,Nx)+T_top; 
+T_mid(1:D_air,:) = T_air;
 switch Ambtype
     case 'constant'
-        T_mid = zeros(Nz,Nx)+T_top; 
+%         T_mid = zeros(Nz,Nx)+T_top; 
         T_mid(Nz:nz-1,:) = T_bot;
         T_mid(Nz,:) = T_bot+300;
     case 'linear'
-        T_mid = T_top + abs(zp2d)./D.*(T_bot-T_top);
+        T_mid(D_air+1:end,:) = T_top + abs(zp2d(D_air+1:end,:)-D/10)./D*0.9.*(T_bot-T_top);
     case 'gaussian'
         radius = L/7;
 %         T_amp = T_bot-T_top+300;
 %         T_amp = 600;
-        T_mid = zeros(Nz,Nx)+T_top; 
-        T_mid = T_mid + (T_bot-T_top+300).*exp(- (xp2d-L/2).^2./radius.^2 - (zp2d-L/2).^2./radius.^2 );
+%         T_mid = zeros(Nz,Nx)+T_top; 
+        T_mid = T_mid...
+            + (T_bot-T_top+300).*exp(- (xp2d-L/2).^2./radius.^2 - (zp2d-L*2/3).^2./radius.^2 );
         T_mid(Nz,:) = T_bot;
 end
 
     Material    = ones(Nz,Nx); % artificial colours for visual representation of deformation
-    Material(1:nz/10,:) = 2; Material(0.2*nz:0.3*nz,:) = 2; Material(0.4*nz:0.5*nz,:) = 2;
-    Material(0.6*nz:0.7*nz,:) = 2; Material(0.8*nz:0.9*nz,:) = 2;
+%     Material(1:nz/10,:) = 2; Material(0.2*nz:0.3*nz,:) = 2; Material(0.4*nz:0.5*nz,:) = 2;
+%     Material(0.6*nz:0.7*nz,:) = 2; Material(0.8*nz:0.9*nz,:) = 2;
     Alpha_mid   = zeros(Nz,Nx) + Alpha_mantle;
     Eta_mid     = zeros(Nz,Nx) + Eta_mantle; Eta_out = Eta_mid; % viscosity
     Kappa_mid   = zeros(Nz,Nx) + Kappa_mantle; % thermal conductivity
     Cp_mid      = zeros(Nz,Nx) + Cp_mantle; % heat capacity
     Hr_mid      = zeros(Nz,Nx) + Hr_mantle; % radiogenic heat production
-
+    Rho0     = zeros(Nz,Nx) + Rho0;
+    % air properties
+    Alpha_mid(1:D_air,:)    = Alpha_air;
+    Eta_mid(1:D_air,:)      = Eta_air;
+    Kappa_mid(1:D_air,:)    = Kappa_air;
+    Cp_mid(1:D_air,:)       = Cp_air;
+    Hr_mid(1:D_air,:)       = Hr_air;
+    Rho0(1:D_air,:)      = Rho_air;
     %initialise staggered grids
     T_vx    = zeros(Nz,Nx); T_vz    = zeros(Nz,Nx);
     k_vx    = zeros(Nz,Nx); k_vz = zeros(Nz,Nx);

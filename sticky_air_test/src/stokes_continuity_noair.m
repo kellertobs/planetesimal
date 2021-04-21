@@ -128,7 +128,11 @@ II = [II, ii(:)']; JJ = [JJ, jj4(:)'];  AA = [AA,   -Eta1(:)'/dx/dz]; % bottomle
 Asum = zeros(size(ii));
 jj1 = indP(2:nz,2:nx1); jj2 = indP(3:nz1,2:nx1);
 II = [II, ii(:)']; JJ = [JJ, jj1(:)'];   AA = [AA,   Asum(:)'+Pscale/dx]; % P1; current node
-II = [II, ii(:)']; JJ = [JJ, jj2(:)'];   AA = [AA,   Asum(:)'-Pscale/dx]; % P2; right of current node
+II = [II, ii(:)']; JJ = [JJ, jj2(:)'];   AA = [AA,   Asum(:)'-Pscale/dx];
+% Asum = zeros(size(ii));
+% jj1 = indP(2:nz,2:nx1); jj2 = indP(3:nz1,2:nx1);
+% II = [II, ii(:)']; JJ = [JJ, jj1(:)'];   AA = [AA,   Asum(:)'+Pscale/dx]; % P1; current node
+% II = [II, ii(:)']; JJ = [JJ, jj2(:)'];   AA = [AA,   Asum(:)'-Pscale/dx]; % P2; right of current node
 
 % RHS
 Rsum = zeros(size(ii)) - gz*Rho_vz(2:nz,2:nx1);
@@ -166,7 +170,7 @@ IR = [IR, ii(:)'];
 RR = [RR, Rsum(:)'];
 
 % % % real boundary condition P(2,2) = Rho*gz*dz/2
-RHOb = 3300;
+RHOb = 1;
 II = [II,indP(2,2)]; JJ = [JJ,indP(2,2)];   AA = [AA, 1*Pscale];
 IR = [IR,indP(2,2)]; RR = [RR, RHOb*dz/2*gz];
 

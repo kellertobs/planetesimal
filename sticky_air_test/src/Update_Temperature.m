@@ -48,7 +48,7 @@ switch Tsolver
                 Ha(2:end-1,2:end-1))./mean(Rho_mid(:))./ Cp_mantle; % + internal sources 
             [adv_T] = advection2(vx_out,vz_out,T_mid,dx,dz,AdvRegime);
         end
-        T_mid(1,:) = T_top;
+        T_mid(1,:) = T_air;
         T_mid(end,:) = T_mid(end,:);
         T_mid(:,1) = T_mid(:,2);
         T_mid(:,end) = T_mid(:,end-1);
