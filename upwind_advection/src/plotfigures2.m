@@ -9,8 +9,8 @@
     title('colormap of material')
     hold on
 %     quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k') 
-    quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
-%     quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
+%     quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
 
     subplot(3,3,2);
     imagesc(xp(2:nx1),zp(2:nz1),Rho_mid(2:nz1,2:nx1));
@@ -20,8 +20,8 @@
     title('colormap of RHO')
     hold on
 %     quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
-    quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
-%     quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
+%     quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
     
     subplot(3,3,3)
     imagesc(xp(2:nx1),zp(2:nz1),P_out(2:nz1,2:nx1))
@@ -31,8 +31,8 @@
     title('colormap of pressure')
     hold on
 %     quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
-    quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
-%     quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
+%     quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
     
     subplot(3,3,4)
     imagesc(xp(2:nx1),zp(2:nz1),T_out(2:nx1,2:nz1))
@@ -89,8 +89,8 @@
     title('colormap of material')
     hold on
 %     quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
-    quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
-%     quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
+%     quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
 
     subplot(3,3,2);
     imagesc(xp(2:end-1),zp(2:end-1),Rho_mid(2:end-1,2:end-1));
@@ -100,8 +100,8 @@
     title('colormap of RHO')
     hold on
 %     quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
-    quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
-%     quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')   
+%     quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')   
     
     subplot(3,3,3)
     imagesc(xp(2:end-1),zp(2:end-1),P_out(2:end-1,2:end-1))
@@ -111,8 +111,8 @@
     title('colormap of pressure')
     hold on
 %     quiver(xp(3:5:Nx),zp(3:5:Nz),vx_mid(3:5:nz1,3:5:Nx),vz_mid(3:5:Nz,3:5:Nx),'k')
-    quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
-%     quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
+%     quiver(xp(3:20:Nx),zp(3:20:Nz),vx_mid(3:20:nz1,3:20:Nx),vz_mid(3:20:Nz,3:20:Nx),'k') 
+    quiver(xp(3:10:Nx),zp(3:10:Nz),vx_mid(3:10:nz1,3:10:Nx),vz_mid(3:10:Nz,3:10:Nx),'k')
     
     subplot(3,3,4)
     imagesc(xp(2:end-1),zp(2:end-1),T_out(2:end-1,2:end-1))
