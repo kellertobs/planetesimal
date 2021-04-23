@@ -31,21 +31,24 @@ NUM.dz      =  NUM.D/NUM.nz;    % spacing of z coordinates
 
 
 %% set physicsal parameters
-PHY.Rho0    =  3300;            % reference density [kg/m3]
-PHY.Eta0    =  1e20;         	% reference viscosity [Pas]
+%        solid       ||       liquid
+PHY.Rho0.s  =  3300;    PHY.Rho0.l  =  3300;        % reference density [kg/m3]
+PHY.Eta0.s  =  1e20;    PHY.Eta0.l  =  1e3;         % reference viscosity [Pas]
 PHY.aT0     =  3e-5;            % thermal expansivity [1/K]
 PHY.kT0     =  10;              % Thermal conductivity [W/m/K]
 PHY.Cp0     =  1000;            % Volumetric heat capacity [J/kg/K]
 PHY.Hr0     =  1e-6;            % Radiogenic heat productivity [W/m3]
 PHY.gz      =  10;              % z-gravity 
 PHY.gx      =  0;               % x-gravity
+PHY.phi0    =  0.01;            % liquid fraction
+PHY.K0      =  1e-7;            % background permeability
 
 
 %% set initial condition
 SOL.T0      =  100;           	% reference/top potential temperature [C]
 SOL.T1      =  2000;           	% bottom potential temperature (if different from top) [C]
 SOL.dT      =  300;           	% temperature perturbation amplitude [C]
-SOL.rT      =  100e3;         	% radius of hot plume [m]
+SOL.rT      =  NUM.L/4;         % radius of hot plume [m]
 SOL.zT      =  NUM.D/2;         % z-position of hot plume [m]
 SOL.xT      =  NUM.L/2;         % x-position of hot plume [m]
 
@@ -85,7 +88,7 @@ NUM.cstab     	= 1e-7;     % stabilising coefficient for P-diagonal
 %% start model run [do not modify]
 
 % check thermal Rayleigh number
-SOL.Ra = PHY.Rho0*PHY.aT0*(SOL.T1-SOL.T0)*(NUM.L^3)*PHY.gz/PHY.Eta0/(PHY.kT0/PHY.Rho0/PHY.Cp0);
+SOL.Ra = PHY.Rho0.l*PHY.aT0*(SOL.T1-SOL.T0)*(NUM.L^3)*PHY.gz/PHY.Eta0.l/(PHY.kT0/PHY.Rho0.l/PHY.Cp0);
 if SOL.Ra < 1e3
     disp('WARNING: Rayleigh number too low, no free convection')
 end
