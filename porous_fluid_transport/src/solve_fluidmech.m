@@ -243,8 +243,8 @@ end
 SOL.P.s(2:end-1,2:end-1) = P_cmp./(1-SOL.phi(2:end-1,2:end-1)) + SOL.P.l(2:end-1,2:end-1);                                 % dynamic solid pressure
 SOL.Pt.s = SOL.P.s + RhoRef.*PHY.gz.*NUM.ZP + RhoRef.*PHY.gx.*NUM.XP;   % total solid pressure
 SOL.Pt.s = SOL.Pt.s - mean(SOL.Pt.s(2,:)) + RhoRef*NUM.dz/2*PHY.gz;     % adjust total solid pressure to set surface pressure
-SOL.W.l(:,2:end-1) = w_seg./(1-SOL.phiW(:,2:end-1)) + SOL.W.s(:,2:end-1);
-SOL.U.l(2:end-1,:) = u_seg./(1-SOL.phiU(2:end-1,:)) + SOL.U.s(2:end-1,:);
+SOL.W.l(:,2:end-1) = w_seg./SOL.phiW(:,2:end-1) + SOL.W.s(:,2:end-1);
+SOL.U.l(2:end-1,:) = u_seg./SOL.phiU(2:end-1,:) + SOL.U.s(2:end-1,:);
 
 % PP  = reshape(X(indP(:)),NUM.nzP,NUM.nxP).*Pscale;               % dynamic pressure
 % PPt = PP + RhoRef.*PHY.gz.*NUM.ZP + RhoRef.*PHY.gx.*NUM.XP;   % total pressure
@@ -262,7 +262,7 @@ subplot(2,3,1)
     title('fluid x-velocity [ms^-^1]')
     
     subplot(2,3,2)
-    imagesc(NUM.xW,NUM.zW,-SOL.W.l); hold on;
+    imagesc(NUM.xW(2:end-1),NUM.zW(2:end-1),-SOL.W.l(2:end-1,2:end-1)); hold on;
     colormap(subplot(2,3,2),cm2)
     axis ij equal tight;
     colorbar
