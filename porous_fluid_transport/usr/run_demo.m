@@ -41,7 +41,7 @@ PHY.Hr0     =  1e-6;            % Radiogenic heat productivity [W/m3]
 PHY.gz      =  10;              % z-gravity 
 PHY.gx      =  0;               % x-gravity
 PHY.phi0    =  0.01;            % liquid fraction
-PHY.K0      =  1e-7;            % background permeability
+PHY.K0      =  1e-8;            % background permeability
 
 
 %% set initial condition
