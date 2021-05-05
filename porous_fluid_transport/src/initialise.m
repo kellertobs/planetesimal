@@ -66,6 +66,10 @@ SOL.T = SOL.T.*exp(PHY.aT0*(PHY.gz.*(NUM.ZP+pert) + PHY.gx.*NUM.XP)./PHY.Cp0);
 SOL.T([1 end],:) = SOL.T([2 end-1],:);
 SOL.T(:,[1 end]) = SOL.T(:,[2 end-1]);
 
+% set liquid fraction initial condition (uniform background + gaussian)
+SOL.phi = zeros(NUM.nzP,NUM.nxP) + SOL.phi0;
+SOL.phi = SOL.phi + SOL.dphi.*exp(-(NUM.XP-SOL.xT).^2./SOL.rT.^2 - (NUM.ZP-SOL.zT).^2./SOL.rT.^2 );
+
 
 %% setup velocity-pressure solution arrays
 
@@ -85,16 +89,14 @@ SOL.WP.l(2:end-1,:) = SOL.W.l(1:end-1,:)+SOL.W.l(2:end,:)./2;
 
 
 %% setup material property arrays
-MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.s;  	% solid density
-MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.l;      % liquid density
-MAT.Eta.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.s;   	% viscosity
-MAT.Eta.l	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.l;   	% liquid viscosity
-MAT.aT	= zeros(NUM.nzP,NUM.nxP) + PHY.aT0;    	% thermal expansivity
-MAT.kT	= zeros(NUM.nzP,NUM.nxP) + PHY.kT0;     % thermal conductivity
-MAT.Cp	= zeros(NUM.nzP,NUM.nxP) + PHY.Cp0;   	% heat capacity
-MAT.k   = zeros(NUM.nzP,NUM.nxP) + PHY.K0;      % permeability
-
-SOL.phi = zeros(NUM.nzP,NUM.nxP) + PHY.phi0;    % liquid fraction
+MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.s;  	  % solid density
+MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.l;        % liquid density
+MAT.Eta.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.s;   	  % viscosity
+MAT.Eta.l	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.l;   	  % liquid viscosity
+MAT.aT	= zeros(NUM.nzP,NUM.nxP) + PHY.aT0;               % thermal expansivity
+MAT.kT	= zeros(NUM.nzP,NUM.nxP) + PHY.kT0;               % thermal conductivity
+MAT.Cp	= zeros(NUM.nzP,NUM.nxP) + PHY.Cp0;   	          % heat capacity
+MAT.k   = zeros(NUM.nzP,NUM.nxP) + PHY.k0 .* SOL.phi0^3;  % permeability
 
 
 %% setup deformation property arrays

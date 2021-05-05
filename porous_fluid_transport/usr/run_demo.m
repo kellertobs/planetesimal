@@ -6,7 +6,7 @@ clear; close all;
 RUN.ID      =  'demo';          % run identifier
 RUN.plot    =  1;               % switch on to plot live output
 RUN.save    =  0;               % switch on to save output files
-RUN.nop     =  10;               % output every 'nop' grid steps of transport
+RUN.nop     =  1;               % output every 'nop' grid steps of transport
 RUN.nup     =  1;               % update every 'nup' grid steps of transport
 
 
@@ -20,8 +20,8 @@ NUM.dt      =  1e3*NUM.yr;      % (initial) time step [s]
 
 
 %% set model domain
-NUM.D       =  500*1e3;         % length of z domain
-NUM.L       =  500*1e3;         % length of x domain
+NUM.D       =  65*1e3;         % length of z domain
+NUM.L       =  65*1e3;         % length of x domain
 NUM.nz      =  100;             % number of real z block nodes
 NUM.nx      =  100;          	% number of real x block nodes
 
@@ -32,25 +32,28 @@ NUM.dz      =  NUM.D/NUM.nz;    % spacing of z coordinates
 
 %% set physicsal parameters
 %        solid       ||       liquid
-PHY.Rho0.s  =  3300;    PHY.Rho0.l  =  3300;        % reference density [kg/m3]
-PHY.Eta0.s  =  1e20;    PHY.Eta0.l  =  1e3;         % reference viscosity [Pas]
+PHY.Rho0.s  =  3300;    PHY.Rho0.l  =  2600;        % reference density [kg/m3]
+PHY.Eta0.s  =  1e20;    PHY.Eta0.l  =  1e2;         % reference viscosity [Pas]
 PHY.aT0     =  3e-5;            % thermal expansivity [1/K]
 PHY.kT0     =  10;              % Thermal conductivity [W/m/K]
 PHY.Cp0     =  1000;            % Volumetric heat capacity [J/kg/K]
 PHY.Hr0     =  1e-6;            % Radiogenic heat productivity [W/m3]
 PHY.gz      =  10;              % z-gravity 
 PHY.gx      =  0;               % x-gravity
-PHY.phi0    =  0.01;            % liquid fraction
-PHY.K0      =  1e-8;            % background permeability
+PHY.k0      =  1e-7;            % background permeability
 
 
 %% set initial condition
 SOL.T0      =  100;           	% reference/top potential temperature [C]
 SOL.T1      =  2000;           	% bottom potential temperature (if different from top) [C]
-SOL.dT      =  300;           	% temperature perturbation amplitude [C]
-SOL.rT      =  NUM.L/4;         % radius of hot plume [m]
+SOL.dT      =  0;           	% temperature perturbation amplitude [C]
+SOL.rT      =  NUM.L/5;         % radius of hot plume [m]
 SOL.zT      =  NUM.D/2;         % z-position of hot plume [m]
 SOL.xT      =  NUM.L/2;         % x-position of hot plume [m]
+
+SOL.phi0    =  0.01;            % background liquid fraction [vol]
+SOL.dphi    =  0.01;           	% liquid fraction perturbation amplitude [vol]
+
 
 % SOL.Ttype   = 'constant';       % constant ambient background temperature
 % SOL.Ttype   = 'linear';         % linear temperaure profile between top and bottom
@@ -82,7 +85,7 @@ NUM.AdvnScheme  = 'fromm';
 NUM.CFL         = 0.5;   	% Courant number to limit physical time step
 NUM.theta     	= 0.5;      % 0 = backwards Euler, 0.5 = Crank-Nicholson, 1 = Forward Euler
 NUM.restol    	= 1e-3;     % residual tolerance for nonlinear iterations
-NUM.cstab     	= 1e-7;     % stabilising coefficient for P-diagonal
+NUM.cstab     	= 1e-10;     % stabilising coefficient for P-diagonal
 
 
 %% start model run [do not modify]

@@ -9,22 +9,24 @@ tic;  % start clock on update
 
 
 %% update permeability 
-MAT.k   = PHY.K0*SOL.phi^3; 
+MAT.k   = PHY.k0*SOL.phi.^3; 
 % interpolate to staggered vz nodes
 MAT.kW  = (MAT.k(1:end-1,:)+MAT.k(2:end,:))/2;
 % interpolate to staggered vx nodes
 MAT.kU  = (MAT.k(:,1:end-1)+MAT.k(:,2:end))/2;
 
+
 %% update T-dependent density
-MAT.Rho.s = PHY.Rho0.s.*(1 - MAT.aT.*(SOL.T-SOL.T0));   % solid density on centre nodes
-MAT.Rho.l = PHY.Rho0.l.*(1 - MAT.aT.*(SOL.T-SOL.T0));   % liquid
-MAT.Rho.T = SOL.phi.*MAT.Rho.l + (1-SOL.phi).*MAT.Rho.l; % total density
+MAT.Rho.s = PHY.Rho0.s.*(1 - MAT.aT.*(SOL.T-SOL.T0));    % solid density on centre nodes
+MAT.Rho.l = PHY.Rho0.l.*(1 - MAT.aT.*(SOL.T-SOL.T0));    % liquid
+MAT.Rho.t = SOL.phi.*MAT.Rho.l + (1-SOL.phi).*MAT.Rho.s; % total density
 % interpolate to staggered vz nodes
 MAT.RhoW.s = (MAT.Rho.s(1:end-1,:)+MAT.Rho.s(2:end,:))/2;
 MAT.RhoW.l = (MAT.Rho.l(1:end-1,:)+MAT.Rho.l(2:end,:))/2;
 % interpolate to staggered vx nodes
 MAT.RhoU.s = (MAT.Rho.s(:,1:end-1)+MAT.Rho.s(:,2:end))/2;
 MAT.RhoU.l = (MAT.Rho.l(:,1:end-1)+MAT.Rho.l(:,2:end))/2;
+
 
 %% update physical time step
 Vs      = abs([SOL.U.s(:);SOL.W.s(:)]);
@@ -75,11 +77,11 @@ SOL.phiU = (SOL.phi(:,1:end-1)+SOL.phi(:,2:end))/2;
 
 %% update strain-rate components
 % % get volumetric strain-rate (velocity divergence)
-% DEF.ups(2:end-1,2:end-1) = diff(SOL.U(2:end-1,:),1,2)./NUM.dx ...
-%                          + diff(SOL.W(:,2:end-1),1,1)./NUM.dz;      % velocity divergence
-% DEF.ups([1 end],:)       = DEF.ups([2 end-1],:);                    % apply boundary conditions
-% DEF.ups(:,[1 end])       = DEF.ups(:,[2 end-1]);
-% 
+DEF.ups(2:end-1,2:end-1) = diff(SOL.U.s(2:end-1,:),1,2)./NUM.dx ...
+                         + diff(SOL.W.s(:,2:end-1),1,1)./NUM.dz;      % velocity divergence
+DEF.ups([1 end],:)       = DEF.ups([2 end-1],:);                    % apply boundary conditions
+DEF.ups(:,[1 end])       = DEF.ups(:,[2 end-1]);
+ 
 % % get deviatoric strain rates
 % DEF.exx(:,2:end-1) = diff(SOL.U,1,2)./NUM.dx ...
 %                    - DEF.ups(:,2:end-1)./3;                         % x-normal strain rate
