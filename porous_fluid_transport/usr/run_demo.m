@@ -20,8 +20,8 @@ NUM.dt      =  1e3*NUM.yr;      % (initial) time step [s]
 
 
 %% set model domain
-NUM.D       =  65*1e3;         % length of z domain
-NUM.L       =  65*1e3;         % length of x domain
+NUM.D       =  65*1e3/4;        % length of z domain
+NUM.L       =  65*1e3/4;        % length of x domain
 NUM.nz      =  100;             % number of real z block nodes
 NUM.nx      =  100;          	% number of real x block nodes
 
@@ -53,7 +53,7 @@ SOL.xT      =  NUM.L/2;         % x-position of hot plume [m]
 
 SOL.phi0    =  0.01;            % background liquid fraction [vol]
 SOL.dphi    =  0.01;           	% liquid fraction perturbation amplitude [vol]
-
+SOL.philim  =  1e-4;            % limit liquid fraction for numerical stability
 
 % SOL.Ttype   = 'constant';       % constant ambient background temperature
 % SOL.Ttype   = 'linear';         % linear temperaure profile between top and bottom
@@ -85,7 +85,7 @@ NUM.AdvnScheme  = 'fromm';
 NUM.CFL         = 0.5;   	% Courant number to limit physical time step
 NUM.theta     	= 0.5;      % 0 = backwards Euler, 0.5 = Crank-Nicholson, 1 = Forward Euler
 NUM.restol    	= 1e-3;     % residual tolerance for nonlinear iterations
-NUM.cstab     	= 1e-10;     % stabilising coefficient for P-diagonal
+NUM.cstab     	= 1e-11;     % stabilising coefficient for P-diagonal
 
 
 %% start model run [do not modify]
