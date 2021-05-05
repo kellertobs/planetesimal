@@ -9,7 +9,7 @@ tic;  % start clock on update
 
 
 %% update permeability 
-MAT.k   = PHY.k0*SOL.phi.^3; 
+MAT.k   = PHY.k0*max(SOL.philim,SOL.phi).^3; 
 % interpolate to staggered vz nodes
 MAT.kW  = (MAT.k(1:end-1,:)+MAT.k(2:end,:))/2;
 % interpolate to staggered vx nodes

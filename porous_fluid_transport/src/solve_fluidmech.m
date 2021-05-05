@@ -28,16 +28,16 @@ while Fnorm > Ftol
     
     tic;  % start clock system assembly
 
-    a = 0.025;  % lagging parameter <= 1
+    a = 0.025/4;  % lagging parameter <= 1
     
-    P_cmp = (1-a).*P_cmp + a.*(- MAT.Eta.s(2:end-1,2:end-1)./SOL.phi(2:end-1,2:end-1) ...
+    P_cmp = (1-a).*P_cmp + a.*(- MAT.Eta.s(2:end-1,2:end-1)./max(SOL.philim,SOL.phi(2:end-1,2:end-1)) ...
           .* (diff(SOL.W.s(:,2:end-1),1,1)/NUM.dz + diff(SOL.U.s(2:end-1,:),1,2)/NUM.dx));    % compaction pressure
     w_seg = (1-a).*w_seg + a.*(- MAT.kW(:,2:end-1)./MAT.EtaW.l(:,2:end-1) ...
           .* (diff(SOL.P.l(:,2:end-1),1,1)/NUM.dz - (MAT.RhoW.l(:,2:end-1)-RhoRef).*PHY.gz)); % vz segregation velocity
-%     w_seg([1 end],:) = 0;  
+    w_seg([1 end],:) = 0;  
     u_seg = (1-a).*u_seg + a.*(- MAT.kU(2:end-1,:)./MAT.EtaU.l(2:end-1,:) ...
           .* (diff(SOL.P.l(2:end-1,:),1,2)/NUM.dx - (MAT.RhoU.l(2:end-1,:)-RhoRef).*PHY.gx)); % vz segregation velocity
-%     u_seg(:,[1 end]) = 0;  
+    u_seg(:,[1 end]) = 0;  
 
       
     % initialise global lists for vectorised assembly
@@ -241,7 +241,7 @@ while Fnorm > Ftol
     %% check non-linear residual
     X = [SOL.W.s(:);SOL.U.s(:);SOL.P.l(:)];
     F = A*(S\X) - R;
-    
+        
     % map residual vector to 2D arrays
     FW  = reshape(F(indW(:)),NUM.nzW,NUM.nxW);  FW([1 end],:) = 0; FW(:,[1 end]) = 0; % z-velocity
     FU  = reshape(F(indU(:)),NUM.nzU,NUM.nxU);  FU([1 end],:) = 0; FU(:,[1 end]) = 0;  % x-velocity
