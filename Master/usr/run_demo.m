@@ -3,7 +3,11 @@ clear; close all;
 
 
 %% set model run options
+<<<<<<< HEAD
 RUN.ID      =  'demo plume 1st';          % run identifier
+=======
+RUN.ID      =  'demo';          % run identifier
+>>>>>>> bdd488eba94643b2d6efc59ca16c8ba2f81513a8
 RUN.plot    =  1;               % switch on to plot live output
 RUN.save    =  0;               % switch on to save output files
 RUN.nop     =  10;               % output every 'nop' grid steps of transport
@@ -51,8 +55,13 @@ SOL.xT      =  NUM.L/2;         % x-position of hot plume [m]
 
 % SOL.Ttype   = 'constant';       % constant ambient background temperature
 % SOL.Ttype   = 'linear';         % linear temperaure profile between top and bottom
+<<<<<<< HEAD
 % SOL.Ttype   = 'gaussian';       % Gaussian central plume
 SOL.Ttype   = 'hot bottom';     % hot deep layer, skips the initial T diffusion stage
+=======
+SOL.Ttype   = 'gaussian';       % Gaussian central plume
+% SOL.Ttype   = 'hot bottom';     % hot deep layer, skips the initial T diffusion stage
+>>>>>>> bdd488eba94643b2d6efc59ca16c8ba2f81513a8
 
 
 %% set boundary conditions
@@ -76,7 +85,11 @@ NUM.AdvnScheme  = 'fromm';
 % NUM.AdvnScheme  = 'third upwind'
 % NUM.AdvnScheme  = 'flxdiv'
 
+<<<<<<< HEAD
 NUM.CFL         = 0.1;   	% Courant number to limit physical time step
+=======
+NUM.CFL         = 0.5;   	% Courant number to limit physical time step
+>>>>>>> bdd488eba94643b2d6efc59ca16c8ba2f81513a8
 NUM.theta     	= 0.5;      % 0 = backwards Euler, 0.5 = Crank-Nicholson, 1 = Forward Euler
 NUM.restol    	= 1e-3;     % residual tolerance for nonlinear iterations
 NUM.cstab     	= 1e-7;     % stabilising coefficient for P-diagonal

@@ -56,11 +56,7 @@ switch SOL.Ttype
         SOL.T = SOL.T + SOL.dT.*exp(-(NUM.XP-SOL.xT).^2./SOL.rT.^2 - (NUM.ZP-SOL.zT).^2./SOL.rT.^2 );
     case 'hot bottom'
         SOL.T = zeros(NUM.nzP,NUM.nxP) + SOL.T0;
-<<<<<<< HEAD
-        SOL.T = SOL.T + 1./(1+exp(-(NUM.ZP-SOL.zT+pert)./(NUM.D/75))) .* (SOL.T1-SOL.T0);
-=======
         SOL.T = SOL.T + 1./(1+exp(-(NUM.ZP-SOL.zT+pert)./(NUM.D/50))) .* (SOL.T1-SOL.T0);
->>>>>>> bdd488eba94643b2d6efc59ca16c8ba2f81513a8
 end
 
 % convert from potential to natural temperature
@@ -70,27 +66,37 @@ SOL.T = SOL.T.*exp(PHY.aT0*(PHY.gz.*(NUM.ZP+pert) + PHY.gx.*NUM.XP)./PHY.Cp0);
 SOL.T([1 end],:) = SOL.T([2 end-1],:);
 SOL.T(:,[1 end]) = SOL.T(:,[2 end-1]);
 
+% set liquid fraction initial condition (uniform background + gaussian)
+SOL.phi = zeros(NUM.nzP,NUM.nxP) + SOL.phi0;
+SOL.phi = SOL.phi + SOL.dphi.*exp(-(NUM.XP-SOL.xT).^2./SOL.rT.^2 - (NUM.ZP-SOL.zT).^2./SOL.rT.^2 );
+
 
 %% setup velocity-pressure solution arrays
-SOL.W   = zeros(NUM.nzW,NUM.nxW);               % z-velocity on z-face nodes
-SOL.U   = zeros(NUM.nzU,NUM.nxU);               % x-velocity on x-face nodes
-SOL.P   = zeros(NUM.nzP,NUM.nxP);               % Dynamic pressure on centre nodes
-SOL.Pt  = zeros(NUM.nzP,NUM.nxP);               % pressure on centre nodes
+
+SOL.W.s    = zeros(NUM.nzW,NUM.nxW); SOL.W.l    = zeros(NUM.nzW,NUM.nxW);   % z-velocity on z-face nodes
+SOL.U.s    = zeros(NUM.nzU,NUM.nxU); SOL.U.l    = zeros(NUM.nzU,NUM.nxU);   % x-velocity on x-face nodes
+SOL.P.s    = zeros(NUM.nzP,NUM.nxP); SOL.P.l    = zeros(NUM.nzP,NUM.nxP);   % Dynamic pressure on centre nodes
+SOL.Pt.s   = zeros(NUM.nzP,NUM.nxP); SOL.Pt.l   = zeros(NUM.nzP,NUM.nxP);   % pressure on centre nodes
 
 % project velocities to centre nodes
-SOL.UP = zeros(NUM.nzP,NUM.nxP);
-SOL.WP = zeros(NUM.nzP,NUM.nxP);
+SOL.UP.s = zeros(NUM.nzP,NUM.nxP);  SOL.UP.l = zeros(NUM.nzP,NUM.nxP);
+SOL.WP.s = zeros(NUM.nzP,NUM.nxP);  SOL.WP.l = zeros(NUM.nzP,NUM.nxP);
 
-SOL.UP(:,2:end-1) = SOL.U(:,1:end-1)+SOL.U(:,2:end)./2;
-SOL.WP(2:end-1,:) = SOL.W(1:end-1,:)+SOL.W(2:end,:)./2;
+SOL.UP.s(:,2:end-1) = SOL.U.s(:,1:end-1)+SOL.U.s(:,2:end)./2;
+SOL.WP.s(2:end-1,:) = SOL.W.s(1:end-1,:)+SOL.W.s(2:end,:)./2;
+SOL.UP.l(:,2:end-1) = SOL.U.l(:,1:end-1)+SOL.U.l(:,2:end)./2;
+SOL.WP.l(2:end-1,:) = SOL.W.l(1:end-1,:)+SOL.W.l(2:end,:)./2;
 
 
 %% setup material property arrays
-MAT.Rho	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0;  	% density
-MAT.Eta	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0;   	% viscosity
-MAT.aT	= zeros(NUM.nzP,NUM.nxP) + PHY.aT0;    	% thermal expansivity
-MAT.kT	= zeros(NUM.nzP,NUM.nxP) + PHY.kT0;     % thermal conductivity
-MAT.Cp	= zeros(NUM.nzP,NUM.nxP) + PHY.Cp0;   	% heat capacity
+MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.s;  	  % solid density
+MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.l;        % liquid density
+MAT.Eta.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.s;   	  % viscosity
+MAT.Eta.l	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.l;   	  % liquid viscosity
+MAT.aT	= zeros(NUM.nzP,NUM.nxP) + PHY.aT0;               % thermal expansivity
+MAT.kT	= zeros(NUM.nzP,NUM.nxP) + PHY.kT0;               % thermal conductivity
+MAT.Cp	= zeros(NUM.nzP,NUM.nxP) + PHY.Cp0;   	          % heat capacity
+MAT.k   = zeros(NUM.nzP,NUM.nxP) + PHY.k0 .* SOL.phi0^3;  % permeability
 
 
 %% setup deformation property arrays
