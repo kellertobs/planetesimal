@@ -387,11 +387,16 @@ X = S*(A\R); % get solution vector
 
 %% Read out solution
 % map solution vector to 2D arrays
-SOL.P.l  = reshape((X(indP(:))-mean(X(indP(:)))),NUM.nzP,NUM.nxP);                 % dynamic fluid pressure
-SOL.Pt.l = SOL.P.l + RhoRef.*PHY.gz.*NUM.ZP + RhoRef.*PHY.gx.*NUM.XP;   % total fluid pressure
-SOL.Pt.l = SOL.Pt.l - mean(SOL.Pt.l(2,:)) + RhoRef*NUM.dz/2*PHY.gz;     % adjust total fluid pressure to set surface pressure
 SOL.W.s  = reshape(X(indW(:)),NUM.nzW,NUM.nxW);                         % solid z-velocity
 SOL.U.s  = reshape(X(indU(:)),NUM.nzU,NUM.nxU);                         % solid x-velocity
+w_seg    = reshape(X(NUM.NW+NUM.NU+indW(:)),NUM.nzW,NUM.nxW);
+u_seg    = reshape(X(NUM.NW+NUM.NU+indU(:)),NUM.nzU,NUM.nxU); 
+SOL.P.l  = reshape((X(2*(NUM.NW+NUM.NU)+indP(:))-mean(X(2*(NUM.NW+NUM.NU)+indP(:)))),NUM.nzP,NUM.nxP);                 % dynamic fluid pressure
+P_cmp    = reshape(X(2*(NUM.NW+NUM.NU)+NUM.NP+indP(:)),NUM.nzP,NUM.nxP);
+% SOL.Pt.l = SOL.P.l + RhoRef.*PHY.gz.*NUM.ZP + RhoRef.*PHY.gx.*NUM.XP;   % total fluid pressure
+% SOL.Pt.l = SOL.Pt.l - mean(SOL.Pt.l(2,:)) + RhoRef*NUM.dz/2*PHY.gz;     % adjust total fluid pressure to set surface pressure
+% SOL.W.s  = reshape(X(indW(:)),NUM.nzW,NUM.nxW);                         % solid z-velocity
+% SOL.U.s  = reshape(X(indU(:)),NUM.nzU,NUM.nxU);                         % solid x-velocity
 
 % temporary plots for testing purpouses
     figure(100); clf;
