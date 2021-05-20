@@ -20,8 +20,8 @@ NUM.dt      =  1e3*NUM.yr;      % (initial) time step [s]
 
 
 %% set model domain
-NUM.D       =  65*1e3/4;        % length of z domain
-NUM.L       =  65*1e3/4;        % length of x domain
+NUM.D       =  65*1e3;        % length of z domain
+NUM.L       =  65*1e3;        % length of x domain
 NUM.nz      =  100;             % number of real z block nodes
 NUM.nx      =  100;          	% number of real x block nodes
 
