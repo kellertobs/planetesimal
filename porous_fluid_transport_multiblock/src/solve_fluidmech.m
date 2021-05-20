@@ -392,7 +392,7 @@ P0 = sparse(NP       ,  NP);
 A = [KV   V0  -GG  -GG;
      V0   KD  -GG   G0;
      DD   DD   KP   P0;
-     DD   G0.' P0   KC];
+     DD   G0.' P0   KC ];
  
 R = [RV; RD; RP; RC];
 
@@ -492,4 +492,6 @@ SOL.WP.l(2:end-1,:) = SOL.W.l(1:end-1,:)+SOL.W.l(2:end,:)./2;
 
 toc_solve = toc;  % stop clock system solution
 fprintf(1,'       solution time %1.4f s \n\n',toc_solve);
+
+
 
