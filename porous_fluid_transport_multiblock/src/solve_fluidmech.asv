@@ -71,10 +71,10 @@ jj1 = indW(1:end-2,2:end-1); jj2 = indW(3:end,2:end-1); jj3 = indW(2:end-1,1:end
 
 aa = -(EtaP1+EtaP2)./NUM.dz^2 - (EtaC1+EtaC2)./NUM.dx^2;
 II = [II; ii(:)]; JJ = [JJ;  ii(:)];   AA = [AA; aa(:)             ];      % W on stencil centre
-II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; EtaC1(:)./NUM.dz^2];      % W one above
-II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; EtaC2(:)./NUM.dz^2];      % W one below
-II = [II; ii(:)]; JJ = [JJ; jj3(:)];   AA = [AA; EtaP1(:)./NUM.dx^2];      % W one to the left
-II = [II; ii(:)]; JJ = [JJ; jj4(:)];   AA = [AA; EtaP2(:)./NUM.dx^2];      % W one to the right
+II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; EtaP1(:)./NUM.dz^2];      % W one above
+II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; EtaP2(:)./NUM.dz^2];      % W one below
+II = [II; ii(:)]; JJ = [JJ; jj3(:)];   AA = [AA; EtaC1(:)./NUM.dx^2];      % W one to the left
+II = [II; ii(:)]; JJ = [JJ; jj4(:)];   AA = [AA; EtaC2(:)./NUM.dx^2];      % W one to the right
 
 % coefficients multiplying x-velocities U
 %         top left         ||        bottom left          ||       top right       ||       bottom right
@@ -391,8 +391,8 @@ P0 = sparse(NP       ,  NP);
 
 A = [KV   V0  GG  GG;
      V0   KD  GG   G0;
-     -DD   -DD   KP   P0;
-     -DD   G0.' P0   KC ];
+     DD   DD   KP   P0;
+     DD   G0.' P0   KC ];
  
 R = [RV; RD; RP; RC];
 
