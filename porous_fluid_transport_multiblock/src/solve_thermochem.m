@@ -10,7 +10,8 @@ To    = SOL.T;     % store previous temperature solution
 dTdto = SOL.dTdt;  % store previous rate of change
 
 % get advection rate
-advn_T = advection(SOL.U,SOL.W,SOL.T,NUM.dx,NUM.dz,NUM.AdvnScheme);
+w_eff = SOL.Wseg + SOL.W.s; u_eff = SOL.Useg +SOL.U.s;
+advn_T = advection(u_eff,w_eff,SOL.T,NUM.dx,NUM.dz,NUM.AdvnScheme);
 
 % get diffusion rate
 diff_T = (diff(SOL.T(:,2:end-1),2,1)./NUM.dz^2  ...
@@ -18,10 +19,11 @@ diff_T = (diff(SOL.T(:,2:end-1),2,1)./NUM.dz^2  ...
        .* MAT.kT(2:end-1,2:end-1);
 
 % heat capacity density
-RhoCp = MAT.Rho.*MAT.Cp;
+RhoCp = MAT.Rho.t.*MAT.Cp;
 
 % get total rate of change
-SOL.dTdt = - advn_T + (diff_T + MAT.Hr(2:end-1,2:end-1) + SOL.Hs(2:end-1,2:end-1) + SOL.Ha(2:end-1,2:end-1))./RhoCp(2:end-1,2:end-1);
+SOL.dTdt = - advn_T + (diff_T + MAT.Hr(2:end-1,2:end-1) + SOL.Hs(2:end-1,2:end-1) + SOL.Ha)./RhoCp(2:end-1,2:end-1);
+% SOL.dTdt = - advn_T + diff_T./RhoCp(2:end-1,2:end-1);
 
 % update temperature solution
 SOL.T(2:end-1,2:end-1) = SOL.T(2:end-1,2:end-1) + (  NUM.theta .*SOL.dTdt   ...

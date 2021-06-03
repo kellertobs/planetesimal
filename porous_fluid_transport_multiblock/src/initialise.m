@@ -87,6 +87,9 @@ SOL.WP.s(2:end-1,:) = SOL.W.s(1:end-1,:)+SOL.W.s(2:end,:)./2;
 SOL.UP.l(:,2:end-1) = SOL.U.l(:,1:end-1)+SOL.U.l(:,2:end)./2;
 SOL.WP.l(2:end-1,:) = SOL.W.l(1:end-1,:)+SOL.W.l(2:end,:)./2;
 
+% set segregation velocities and compaction pressures
+SOL.Useg    = SOL.U.l;   SOL.Wseg   = SOL.W.l;  SOL.Pcmp = SOL.P.s;
+SOL.UP.seg  = SOL.UP.s;  SOL.WP.seg = SOL.WP.s;
 
 %% setup material property arrays
 MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.s;  	  % solid density

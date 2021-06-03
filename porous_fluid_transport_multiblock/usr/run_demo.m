@@ -3,7 +3,7 @@ clear; close all;
 
 
 %% set model run options
-RUN.ID      =  'demo';          % run identifier
+RUN.ID      =  'demo 3';          % run identifier
 RUN.plot    =  1;               % switch on to plot live output
 RUN.save    =  0;               % switch on to save output files
 RUN.nop     =  1;               % output every 'nop' grid steps of transport
@@ -20,8 +20,10 @@ NUM.dt      =  1e3*NUM.yr;      % (initial) time step [s]
 
 
 %% set model domain
-NUM.D       =  65*1e3;        % length of z domain
-NUM.L       =  65*1e3;        % length of x domain
+% NUM.D       =  65*1e3/4;        % length of z domain
+% NUM.L       =  65*1e3/4;        % length of x domain
+NUM.D       =  100*1e3;        % length of z domain
+NUM.L       =  100*1e3;        % length of x domain
 NUM.nz      =  100;             % number of real z block nodes
 NUM.nx      =  100;          	% number of real x block nodes
 

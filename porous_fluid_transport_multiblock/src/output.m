@@ -14,19 +14,19 @@ if RUN.plot
     
     subplot(2,3,1)
     imagesc(NUM.xU,NUM.zU,SOL.U.l); hold on;
-    quiver(NUM.xP(xq),NUM.zP(zq),SOL.UP.l(zq,xq),SOL.WP.l(zq,xq),'k')
+    quiver(NUM.xP(xq),NUM.zP(zq),SOL.UP.s(zq,xq),SOL.WP.s(zq,xq),'k')
     colormap(subplot(2,3,1),cm2)
     axis ij equal tight;
     colorbar
-    title('x-velocity [ms^-^1]')
+    title('solid-velocity [ms^-^1]')
     
     subplot(2,3,2)
     imagesc(NUM.xW,NUM.zW,-SOL.W.l); hold on;
-    quiver(NUM.xP(xq),NUM.zP(zq),SOL.UP.l(zq,xq),SOL.WP.l(zq,xq),'k')
+    quiver(NUM.xP(xq),NUM.zP(zq),SOL.Useg(zq,xq),SOL.Wseg(zq,xq),'k')
     colormap(subplot(2,3,2),cm2)
     axis ij equal tight;
     colorbar
-    title('z-velocity [ms^-^1]')
+    title('segregation-velocity [ms^-^1]')
     
     subplot(2,3,3)
     imagesc(NUM.xP,NUM.zP,SOL.Pt.l); hold on;
@@ -44,18 +44,18 @@ if RUN.plot
     title('Temperature [C]')
     
     subplot(2,3,5);
-    imagesc(NUM.xP,NUM.zP,MAT.Rho.l);
+    imagesc(NUM.xP,NUM.zP,MAT.Rho.t);
     colormap(subplot(2,3,5),cm1)
     axis ij equal tight;
     colorbar
     title('Density [kgm^-^3]')
     
     subplot(2,3,6);
-    imagesc(NUM.xP,NUM.zP,log10(MAT.Eta.l));
+    imagesc(NUM.xP,NUM.zP,SOL.phi);
     colormap(subplot(2,3,6),cm1)
     axis ij equal tight;
     colorbar
-    title('Viscosity [log_1_0 Pas]')
+    title('melt fraction')
     
     drawnow;
 
