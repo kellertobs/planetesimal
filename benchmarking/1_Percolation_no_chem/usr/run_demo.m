@@ -3,7 +3,7 @@ clear; close all;
 
 
 %% set model run options
-RUN.ID      =  'demo 3';          % run identifier
+RUN.ID      =  'Solitary wave 1';          % run identifier
 RUN.plot    =  1;               % switch on to plot live output
 RUN.save    =  0;               % switch on to save output files
 RUN.nop     =  1;               % output every 'nop' grid steps of transport
@@ -18,20 +18,6 @@ NUM.tend    =  1e8*NUM.yr;      % model stopping time [s]
 % [do not modify]
 NUM.dt      =  1e3*NUM.yr;      % (initial) time step [s]
 
-
-%% set model domain
-NUM.D       =  60*1e3;        % length of z domain
-NUM.L       =  60*1e3;        % length of x domain
-% NUM.D       =  100*1e3;        % length of z domain
-% NUM.L       =  100*1e3;        % length of x domain
-NUM.nz      =  100;             % number of real z block nodes
-NUM.nx      =  100;          	% number of real x block nodes
-
-% [do not modify]
-NUM.dx      =  NUM.L/NUM.nx;    % spacing of x coordinates
-NUM.dz      =  NUM.D/NUM.nz;    % spacing of z coordinates
-
-
 %% set physicsal parameters
 %        solid       ||       liquid
 PHY.Rho0.s  =  3300;    PHY.Rho0.l  =  2600;        % reference density [kg/m3]
@@ -44,17 +30,29 @@ PHY.gz      =  10;              % z-gravity
 PHY.gx      =  0;               % x-gravity
 PHY.k0      =  1e-7;            % background permeability
 
+%% set model domain
+NUM.D       =  6.3174e+05*2;        % length of z domain
+NUM.L       =  6.3174e+05*2;        % length of x domain
+% NUM.D       =  100*1e3;        % length of z domain
+% NUM.L       =  100*1e3;        % length of x domain
+NUM.nz      =  100;             % number of real z block nodes
+NUM.nx      =  100;          	% number of real x block nodes
+
+% [do not modify]
+NUM.dx      =  NUM.L/NUM.nx;    % spacing of x coordinates
+NUM.dz      =  NUM.D/NUM.nz;    % spacing of z coordinates
+
 %% set initial condition
 SOL.T0      =  100;           	% reference/top potential temperature [C]
-SOL.T1      =  2000;           	% bottom potential temperature (if different from top) [C]
+SOL.T1      =  100;           	% bottom potential temperature (if different from top) [C]
 SOL.dT      =  100;           	% temperature perturbation amplitude [C]
 SOL.rT      =  NUM.L/5;         % radius of hot plume [m]
 SOL.zT      =  NUM.D/2;         % z-position of hot plume [m]
 SOL.xT      =  NUM.L/2;         % x-position of hot plume [m]
 
 % SOL.phi0    =  0.01;            % background liquid fraction [vol]
-SOL.phi0    =  0.01;            % background liquid fraction [vol]
-SOL.dphi    =  0.01;           	% liquid fraction perturbation amplitude [vol]
+SOL.phi0    =  0.001;            % background liquid fraction [vol]
+SOL.dphi    =  0.009;           	% liquid fraction perturbation amplitude [vol]
 SOL.philim  =  1e-4;            % limit liquid fraction for numerical stability
 
 SOL.Ttype   = 'constant';       % constant ambient background temperature
