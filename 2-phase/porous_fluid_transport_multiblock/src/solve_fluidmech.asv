@@ -21,11 +21,8 @@ SOL.Pcmp = 0.*SOL.P.l(2:end-1,2:end-1);
 SOL.Wseg = 0.*SOL.W.s(:,2:end-1);
 SOL.Useg = 0.*SOL.U.s(2:end-1,:);
 
-% compaction coefficient
-zeta = MAT.Eta.s(2:end-1,2:end-1)./max(SOL.philim,SOL.phi(2:end-1,2:end-1));
-% segregation coefficient
-KD = MAT.kU(2:end-1,2:end-1)./MAT.EtaU.l(2:end-1,2:end-1);
-
+comp
+zeta = max(SOL.philim,SOL.phi(2:end-1,2:end-1))./MAT.Eta.s(2:end-1,2:end-1);
 
 tic
 %% Momentum equation; Row 1
@@ -239,7 +236,7 @@ IR = [IR; ii(:)]; RR = [RR; aa(:)];
 
 % internal points
 ii = indU(2:end-1,2:end-1);
-aa = -1./KD; % inverse of segregation coefficient
+aa = -MAT.EtaU.l(2:end-1,2:end-1)./MAT.kU(2:end-1,2:end-1);
 II = [II; ii(:)]; JJ = [JJ;  ii(:)];   AA = [AA; aa(:)];      % W on stencil centre
 
 % assemble RHS vector

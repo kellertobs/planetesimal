@@ -4,14 +4,6 @@
 fprintf(1,'  ---  solve thermo-chemical equations \n');
 tic;
 
-% Solve melting and chemical partitioning
-CMg_r   = 0.2;  CFe_r   = 0.8;  % reference bulk compositions
-Tm_Mg   = 2000; Tm_Fe   = 1800; % reference melting points
-clap    = 6*1e-8;
-
-perT = 0; perCs = 1; perCf = 1; PhDg = 0.5;
-
-[SOL.phi,CHM.Cs.a,CHM.Cl.a]  =  equilibrium(T,C,P,perT,perCs,perCf,clap,PhDg);
 
 %% Solve energy equation explicitly
 To    = SOL.T;     % store previous temperature solution

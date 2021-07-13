@@ -44,13 +44,6 @@ PHY.gz      =  10;              % z-gravity
 PHY.gx      =  0;               % x-gravity
 PHY.k0      =  1e-7;            % background permeability
 
-%% Set chemical components
-% for compoinents 1, 2 & 3
-CHM.C0.1  = 0.5;    CHM.C0.2  = 0.35;   CHM.C0.3  = 0.15; % initial component fraction [wt%], must sum = 1
-CHM.Tm0.1 = 2000;	CHM.Tm0.2 = 1500;	CHM.Tm0.3 = 1300; % melting point at 0 Pressure
-CHM.r.1   = 50;     CHM.r.2   = 20;     CHM.r.3   = 15;   % curvature coefficient
-CHM.B.1   = 60;     CHM.B.2   = 100;    CHM.B.3   = 120;  % Linear P coefficients
-CHM.Hr.1  = 0;      CHM.Hr.2  = 0;      CH.Hr.3   = 1e-6; % radiogenic heating per component
 %% set initial condition
 SOL.T0      =  100;           	% reference/top potential temperature [C]
 SOL.T1      =  2000;           	% bottom potential temperature (if different from top) [C]
