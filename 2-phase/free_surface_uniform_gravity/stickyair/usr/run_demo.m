@@ -35,8 +35,8 @@ NUM.dt      =  1e3*NUM.yr;      % (initial) time step [s]
 % NUM.D       =  60*1e3;        % length of z domain
 % NUM.L       =  60*1e3;        % length of x domain
 % NUM.A       =  NUM.D*0.1;     % length of free surface
-NUM.D       =  100*1e3;        % length of z domain
-NUM.L       =  100*1e3;        % length of x domain
+NUM.D       =  150*1e3;        % length of z domain
+NUM.L       =  150*1e3;        % length of x domain
 NUM.A       =  NUM.D*0.1;     % length of free surface
 
 NUM.nz      =  110;             % number of real z block nodes
@@ -69,9 +69,9 @@ SOL.rT      =  NUM.L/5;         % radius of hot plume [m]
 SOL.zT      =  NUM.D/2;         % z-position of hot plume [m]
 SOL.xT      =  NUM.L/2;         % x-position of hot plume [m]
 
-% SOL.phi0    =  0.01;            % background liquid fraction [vol]
-SOL.phi0    =  0.001;            % background liquid fraction [vol]
-SOL.dphi    =  0.009;           	% liquid fraction perturbation amplitude [vol]
+SOL.phi0    =  0.01;            % background liquid fraction [vol]
+% SOL.phi0    =  0.001;            % background liquid fraction [vol]
+SOL.dphi    =  0.09;           	% liquid fraction perturbation amplitude [vol]
 SOL.philim  =  1e-4;            % limit liquid fraction for numerical stability
 
 SOL.Ttype   = 'constant';       % constant ambient background temperature

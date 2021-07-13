@@ -64,6 +64,16 @@ NUM.flag.W = zeros(NUM.nzW,NUM.nxW);
 NUM.flag.W = NUM.flag.P(1:end-1,:).*NUM.flag.P(2:end,:);
 NUM.flag.W(NUM.flag.W>3) = 0;
 
+% flag boundary corner nodes
+% NUM.flag.C = (NUM.flag.P(1:end-1,1:end-1) ...
+%     +  NUM.flag.P(2:end  ,1:end-1) ...
+%     +  NUM.flag.P(1:end-1,2:end  ) ...
+%     +  NUM.flag.P(2:end  ,2:end  ))/4;
+NUM.flag.C = (NUM.flag.P(1:end-1,1:end-1) ...
+    .*  NUM.flag.P(2:end  ,1:end-1) ...
+    .*  NUM.flag.P(1:end-1,2:end  ) ...
+    .*  NUM.flag.P(2:end  ,2:end  ))/4;
+
 figure()
 imagesc(NUM.xP,NUM.zP,NUM.flag.P);
 grid on
@@ -76,6 +86,10 @@ figure()
 imagesc(NUM.xW,NUM.zW,NUM.flag.W);
 grid on
 colorbar
+figure()
+imagesc(NUM.xC,NUM.zC,NUM.flag.C);
+colorbar
+grid on
 %% setup initial condition for thermo-chemical solution arrays
 % set temperature initial condition
 pert = -NUM.dx/2.*cos(NUM.XP*2*pi/NUM.D);

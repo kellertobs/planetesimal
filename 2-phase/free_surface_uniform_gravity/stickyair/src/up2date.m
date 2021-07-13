@@ -6,7 +6,6 @@ tic;  % start clock on update
 
 %% update thermal parameters (currently held constant)
 
-
 %% update permeability
 MAT.k   = PHY.k0*max(SOL.philim,SOL.phi).^3;
 % interpolate to staggered vz nodes
@@ -137,6 +136,7 @@ SOL.Ha = (1-SOL.phi(2:end-1,2:end-1)).*SOL.T(2:end-1,2:end-1)    .*MAT.aT(2:end-
     +     SOL.phi(2:end-1,2:end-1)   .*SOL.T(2:end-1,2:end-1).*MAT.aT(2:end-1,2:end-1)...
     .*    SOL.phi(2:end-1,2:end-1)   .*MAT.Rho.l(2:end-1,2:end-1)...
     .*   (PHY.gz.*SOL.WP.l(2:end-1,2:end-1) + PHY.gx.*SOL.UP.l(2:end-1,2:end-1));
+
 
 toc_update = toc;
 fprintf(1,'       update time %1.4f s \n\n',toc_update);

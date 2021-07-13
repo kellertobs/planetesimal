@@ -119,12 +119,6 @@ DEF.tII(2:end-1,2:end-1) = (  (DEF.txx(2:end-1,2:end-1).^2 + DEF.tzz(2:end-1,2:e
 DEF.tII([1 end],:) = DEF.tII([2 end-1],:);                                 % apply boundaries
 DEF.tII(:,[1 end]) = DEF.tII(:,[2 end-1]);
 
-
-
-%% calculate dP/dt
-[dPdts] = advection(SOL.U.s,SOL.W.s,SOL.Pt.s,NUM.dx,NUM.dz,'first upwind');
-[dPdtl] = advection(SOL.U.l,SOL.W.l,SOL.Pt.l,NUM.dx,NUM.dz,'first upwind');
-
 %% update heat source fields
 % update shear heating
 SOL.Hs = 2.*DEF.eII.*DEF.tII...
@@ -132,8 +126,6 @@ SOL.Hs = 2.*DEF.eII.*DEF.tII...
     + (SOL.Pcmp.^2).*SOL.phi./MAT.Eta.s;
 
 % update adiabatic heating
-% SOL.Ha = (SOL.WP.*PHY.gz + SOL.UP.*PHY.gx) .* MAT.Rho.t.*MAT.aT.*SOL.T;
-
 SOL.Ha = (1-SOL.phi(2:end-1,2:end-1)).*SOL.T(2:end-1,2:end-1)    .*MAT.aT(2:end-1,2:end-1)...
     .*   (1-SOL.phi(2:end-1,2:end-1)).*MAT.Rho.s(2:end-1,2:end-1)...
     .*   (PHY.gz.*SOL.WP.s(2:end-1,2:end-1) + PHY.gx.*SOL.UP.s(2:end-1,2:end-1))...
