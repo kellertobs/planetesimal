@@ -70,7 +70,11 @@ EtaP1 = MAT.Eta.s (2:end-2,2:end-1); EtaP2 = MAT.Eta.s (3:end-1,2:end-1); % cent
 %             top          ||         bottom          ||           left            ||          right
 jj1 = indW(1:end-2,2:end-1); jj2 = indW(3:end,2:end-1); jj3 = indW(2:end-1,1:end-2); jj4 = indW(2:end-1,3:end);
 
+% free surface stabilisation
+% dRhodx = (MAT.RhoW.t(2:end-1,3:end) - MAT.RhoW.t(2:end-1,1:end-2))./2./NUM.dx;
+% dRhodz = (MAT.RhoW.t(3:end,2:end-1) - MAT.RhoW.t(1:end-2,2:end-1))./2./NUM.dz;
 aa = -2/3*(EtaP1+EtaP2)./NUM.dz^2 - 1/2*(EtaC1+EtaC2)./NUM.dx^2;
+% aa = -2/3*(EtaP1+EtaP2)./NUM.dz^2 - 1/2*(EtaC1+EtaC2)./NUM.dx^2 -dRhodz.*PHY.gz.*NUM.dt; % free surface stabilisation
 II = [II; ii(:)]; JJ = [JJ;  ii(:)];   AA = [AA; aa(:)             ];      % W on stencil centre
 II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; 2/3*EtaP1(:)./NUM.dz^2];      % W one above
 II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; 2/3*EtaP2(:)./NUM.dz^2];      % W one below
@@ -81,6 +85,10 @@ II = [II; ii(:)]; JJ = [JJ; jj4(:)];   AA = [AA; 1/2*EtaC2(:)./NUM.dx^2];      %
 %         top left         ||        bottom left          ||       top right       ||       bottom right
 jj1 = indU(2:end-2,1:end-1); jj2 = indU(3:end-1,1:end-1); jj3 = indU(2:end-2,2:end); jj4 = indU(3:end-1,2:end);
 
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; (1/2*EtaC1(:)-1/3*EtaP1(:))/NUM.dx/NUM.dz - dRhodx(:).*PHY.gz.*NUM.dt./4];  % U one to the top and left
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA;-(1/2*EtaC1(:)-1/3*EtaP2(:))/NUM.dx/NUM.dz - dRhodx(:).*PHY.gz.*NUM.dt./4];  % U one to the bottom and left
+% II = [II; ii(:)]; JJ = [JJ; jj3(:)];   AA = [AA;-(1/2*EtaC2(:)-1/3*EtaP1(:))/NUM.dx/NUM.dz - dRhodx(:).*PHY.gz.*NUM.dt./4];  % U one to the top and right
+% II = [II; ii(:)]; JJ = [JJ; jj4(:)];   AA = [AA; (1/2*EtaC2(:)-1/3*EtaP2(:))/NUM.dx/NUM.dz - dRhodx(:).*PHY.gz.*NUM.dt./4];  % U one to the bottom and right
 II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; (1/2*EtaC1(:)-1/3*EtaP1(:))/NUM.dx/NUM.dz];  % U one to the top and left
 II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA;-(1/2*EtaC1(:)-1/3*EtaP2(:))/NUM.dx/NUM.dz];  % U one to the bottom and left
 II = [II; ii(:)]; JJ = [JJ; jj3(:)];   AA = [AA;-(1/2*EtaC2(:)-1/3*EtaP1(:))/NUM.dx/NUM.dz];  % U one to the top and right
@@ -123,10 +131,13 @@ ii    = indU(2:end-1,2:end-1);
 EtaC1 = MAT.EtaC.s(1:end-1,2:end-1); EtaC2 = MAT.EtaC.s(2:end  ,2:end-1);
 EtaP1 = MAT.Eta.s (2:end-1,2:end-2); EtaP2 = MAT.Eta.s (2:end-1,3:end-1);
 
+% dRhodx = (MAT.RhoU.t(2:end-1,3:end) - MAT.RhoU.t(2:end-1,1:end-2))./2./NUM.dx;
+% dRhodz = (MAT.RhoU.t(3:end,2:end-1) - MAT.RhoU.t(1:end-2,2:end-1))./2./NUM.dz;
+
 % coefficients multiplying x-velocities U
 %            left          ||          right          ||           top             ||          bottom
 jj1 = indU(2:end-1,1:end-2); jj2 = indU(2:end-1,3:end); jj3 = indU(1:end-2,2:end-1); jj4 = indU(3:end,2:end-1);
-
+% aa = -2/3*(EtaP1+EtaP2)./NUM.dx^2 - 1/2*(EtaC1+EtaC2)./NUM.dz^2 - dRhodx.*PHY.gx.*NUM.dt; % free surface stabilisation;
 aa = -2/3*(EtaP1+EtaP2)./NUM.dx^2 - 1/2*(EtaC1+EtaC2)./NUM.dz^2;
 II = [II; ii(:)]; JJ = [JJ;  ii(:)];   AA = [AA; aa(:)             ];      % U on stencil centre
 II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; 2/3*EtaP1(:)./NUM.dx^2];      % U one to the left
@@ -137,6 +148,11 @@ II = [II; ii(:)]; JJ = [JJ; jj4(:)];   AA = [AA; 1/2*EtaC2(:)./NUM.dz^2];      %
 % coefficients multiplying z-velocities W
 %         top left         ||        top right          ||       bottom left       ||       bottom right
 jj1 = indW(1:end-1,2:end-2); jj2 = indW(1:end-1,3:end-1); jj3 = indW(2:end,2:end-2); jj4 = indW(2:end,3:end-1);
+
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; (1/2*EtaC1(:)-1/3*EtaP1(:))/NUM.dx/NUM.dz - dRhodz(:).*PHY.gx.*NUM.dt./4];  % W one to the top and left
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA;-(1/2*EtaC1(:)-1/3*EtaP2(:))/NUM.dx/NUM.dz - dRhodz(:).*PHY.gx.*NUM.dt./4];  % W one to the top and right
+% II = [II; ii(:)]; JJ = [JJ; jj3(:)];   AA = [AA;-(1/2*EtaC2(:)-1/3*EtaP1(:))/NUM.dx/NUM.dz - dRhodz(:).*PHY.gx.*NUM.dt./4];  % W one to the bottom and left
+% II = [II; ii(:)]; JJ = [JJ; jj4(:)];   AA = [AA; (1/2*EtaC2(:)-1/3*EtaP2(:))/NUM.dx/NUM.dz - dRhodz(:).*PHY.gx.*NUM.dt./4];  % W one to the bottom and right
 
 II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; (1/2*EtaC1(:)-1/3*EtaP1(:))/NUM.dx/NUM.dz];  % W one to the top and left
 II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA;-(1/2*EtaC1(:)-1/3*EtaP2(:))/NUM.dx/NUM.dz];  % W one to the top and right

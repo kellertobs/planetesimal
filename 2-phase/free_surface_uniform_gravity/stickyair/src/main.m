@@ -44,7 +44,10 @@ while NUM.time < NUM.tend && NUM.step < NUM.maxstep
     % update liquid fraction
     [Div_va] = phi_adv(SOL.U.s,SOL.W.s,1-SOL.phi,NUM.dx,NUM.dz,'flxdiv');
     SOL.phi(2:end-1,2:end-1) = SOL.phi(2:end-1,2:end-1) + Div_va * NUM.dt;
-    up2date;                    % update materials & deformation
+%     PHY.RhoR.s(SOL.phi>
+%     [Div_Rho]= phi_adv(SOL.U.s,SOL.W.s,PHY.RhoR.s,NUM.dx,NUM.dz,'flxdiv');
+%     PHY.RhoR.s(2:end-1,2:end-1) = PHY.RhoR.s(2:end-1,2:end-1) + Div_Rho * NUM.dt;
+%     up2date;                    % update materials & deformation
     % % =============================================================
     % % Solve thermo-chemical equations
     % % =============================================================

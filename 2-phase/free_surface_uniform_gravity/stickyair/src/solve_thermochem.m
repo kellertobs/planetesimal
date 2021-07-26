@@ -37,8 +37,8 @@ switch SOL.BCTempTop
 end
 
 % placeholder sticky air boundary conditions
-[za,xa] = find(SOL.phiC<9e-4);
-SOL.T(za,xa) = SOL.Ta;
+% [za,xa] = find(SOL.phiC<9e-4);
+SOL.T(MAT.Rho.t<PHY.Rho0.l) = SOL.Ta;
 
 % apply bottom boundary conditions
 switch SOL.BCTempBot

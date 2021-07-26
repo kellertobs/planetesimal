@@ -105,7 +105,7 @@ SOL.UP.seg  = SOL.UP.s;  SOL.WP.seg = SOL.WP.s;
 
 %% setup material property arrays
 MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.s;  	  % solid density
-MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.l;        % liquid density
+MAT.Rho.l	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.l;        % liquid density
 MAT.Eta.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.s;   	  % viscosity
 MAT.Eta.l	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.l;   	  % liquid viscosity
 MAT.aT	= zeros(NUM.nzP,NUM.nxP) + PHY.aT0;               % thermal expansivity
@@ -114,8 +114,8 @@ MAT.Cp	= zeros(NUM.nzP,NUM.nxP) + PHY.Cp0;   	          % heat capacity
 MAT.k   = zeros(NUM.nzP,NUM.nxP) + PHY.k0 .* SOL.phi0^3;  % permeability
 
 % set sticky air properties
-MAT.Rho.s(1:11,:)   = PHY.Rho0.a;
-MAT.Eta.s(1:11,:)   = PHY.Eta0.a;
+MAT.Rho.s(1:11,:)   = PHY.Rho0.a; PHY.RhoR.s = MAT.Rho.s;
+MAT.Eta.s(1:11,:)   = PHY.Eta0.a; PHY.EtaR.s = MAT.Eta.s;
 MAT.aT(1:11,:)      = PHY.aT0a;
 MAT.kT(1:11,:)      = PHY.kT0a;
 

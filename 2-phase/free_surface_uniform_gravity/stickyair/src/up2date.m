@@ -3,7 +3,7 @@
 % print update header
 fprintf(1,'  ---  update materials & deformation \n');
 tic;  % start clock on update
-
+% profile on
 %% update thermal parameters (currently held constant)
 
 %% update permeability
@@ -15,18 +15,20 @@ MAT.kU  = (MAT.k(:,1:end-1)+MAT.k(:,2:end))/2;
 
 
 %% update T-dependent density
-MAT.Rho.s = PHY.Rho0.s.*(1 - MAT.aT.*(SOL.T-SOL.T0));    % solid density on centre nodes
+MAT.Rho.s = PHY.RhoR.s.*(1 - MAT.aT.*(SOL.T-SOL.T0));    % solid density on centre nodes
 MAT.Rho.l = PHY.Rho0.l.*(1 - MAT.aT.*(SOL.T-SOL.T0));    % liquid
 MAT.Rho.t = SOL.phi.*MAT.Rho.l + (1-SOL.phi).*MAT.Rho.s; % total density
 % interpolate to staggered vz nodes
 MAT.RhoW.s = (MAT.Rho.s(1:end-1,:)+MAT.Rho.s(2:end,:))/2;
 MAT.RhoW.l = (MAT.Rho.l(1:end-1,:)+MAT.Rho.l(2:end,:))/2;
+MAT.RhoW.t = (MAT.Rho.t(1:end-1,:)+MAT.Rho.t(2:end,:))/2;
 % interpolate to staggered vx nodes
 MAT.RhoU.s = (MAT.Rho.s(:,1:end-1)+MAT.Rho.s(:,2:end))/2;
 MAT.RhoU.l = (MAT.Rho.l(:,1:end-1)+MAT.Rho.l(:,2:end))/2;
+MAT.RhoU.t = (MAT.Rho.t(:,1:end-1)+MAT.Rho.t(:,2:end))/2;
 
 %% update liquid fraction
-SOL.phi     = SOL.phi;
+SOL.phi(SOL.phi<SOL.philim)     = SOL.philim;
 SOL.phiC = (SOL.phi(1:end-1,1:end-1) ...
     +  SOL.phi(2:end  ,1:end-1) ...
     +  SOL.phi(1:end-1,2:end  ) ...
@@ -42,18 +44,20 @@ dtadvns = min( NUM.dx/2/max(Vs) , NUM.dz/2/max(Vs) );
 Vl      = abs([SOL.U.l(:);SOL.W.l(:)]);
 dtadvnl = min( NUM.dx/2/max(Vl) , NUM.dz/2/max(Vl) );  % stable time step for T advection
 dtadvn  = min(dtadvnl,dtadvns);
-
-[za,xa] = find(SOL.phiC>=1e-3);
-kappas  = MAT.kT(za,xa)./MAT.Rho.s(za,xa)./MAT.Cp(za,xa);
+% 
+kappas  = MAT.kT(MAT.Rho.t>PHY.Rho0.l)./MAT.Rho.s(MAT.Rho.t>PHY.Rho0.l)./MAT.Cp(MAT.Rho.t>PHY.Rho0.l);
 dtdiffs = (max(NUM.dx,NUM.dz)/2)^2 / max(kappas(:));     % stable time step for T diffusion
-kappal  = MAT.kT(za,xa)./MAT.Rho.l(za,xa)./MAT.Cp(za,xa);
+kappal  = MAT.kT(MAT.Rho.t>PHY.Rho0.l)./MAT.Rho.l(MAT.Rho.t>PHY.Rho0.l)./MAT.Cp(MAT.Rho.t>PHY.Rho0.l);
 dtdiffl = (max(NUM.dx,NUM.dz)/2)^2 / max(kappal(:));
+
 % kappas  = MAT.kT(:)./MAT.Rho.s(:)./MAT.Cp(:);
 % dtdiffs = (max(NUM.dx,NUM.dz)/2)^2 / max(kappas);     % stable time step for T diffusion
 % kappal  = MAT.kT(:)./MAT.Rho.l(:)./MAT.Cp(:);
 % dtdiffl = (max(NUM.dx,NUM.dz)/2)^2 / max(kappal);
 
 dtdiff  = min(dtdiffl,dtdiffs);
+% NUM.dt = NUM.CFL * dtadvn;              % fraction of minimum stable time step
+
 NUM.dt = NUM.CFL * min(dtdiff,dtadvn);              % fraction of minimum stable time step
 if dtdiff<dtadvn
     disp('thermal diffusion regime')
@@ -137,6 +141,6 @@ SOL.Ha = (1-SOL.phi(2:end-1,2:end-1)).*SOL.T(2:end-1,2:end-1)    .*MAT.aT(2:end-
     .*    SOL.phi(2:end-1,2:end-1)   .*MAT.Rho.l(2:end-1,2:end-1)...
     .*   (PHY.gz.*SOL.WP.l(2:end-1,2:end-1) + PHY.gx.*SOL.UP.l(2:end-1,2:end-1));
 
-
+% profile report
 toc_update = toc;
 fprintf(1,'       update time %1.4f s \n\n',toc_update);

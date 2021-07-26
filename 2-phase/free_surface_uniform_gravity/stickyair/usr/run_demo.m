@@ -15,7 +15,7 @@ clear; close all;
 
 
 %% set model run options
-RUN.ID      =  'demo 3';          % run identifier
+RUN.ID      =  'fail_demo2';          % run identifier
 RUN.plot    =  1;               % switch on to plot live output
 RUN.save    =  0;               % switch on to save output files
 RUN.nop     =  1;               % output every 'nop' grid steps of transport
@@ -66,11 +66,11 @@ SOL.T1      =  1000;           	% bottom potential temperature (if different fro
 SOL.Ta      =  298;             % Air temperature
 SOL.dT      =  1000;           	% temperature perturbation amplitude [C]
 SOL.rT      =  NUM.L/5;         % radius of hot plume [m]
-SOL.zT      =  NUM.D/2;         % z-position of hot plume [m]
+SOL.zT      =  NUM.D*2/3;         % z-position of hot plume [m]
 SOL.xT      =  NUM.L/2;         % x-position of hot plume [m]
 
 SOL.phi0    =  0.01;            % background liquid fraction [vol]
-% SOL.phi0    =  0.001;            % background liquid fraction [vol]
+% SOL.phi0    =  0.0001;            % background liquid fraction [vol]
 SOL.dphi    =  0.09;           	% liquid fraction perturbation amplitude [vol]
 SOL.philim  =  1e-4;            % limit liquid fraction for numerical stability
 
