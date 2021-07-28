@@ -1,26 +1,14 @@
-%% 'Sticky Air' method of free surface
-%
-% This current build is incompatible with the sticky air free surface. The
-% calculated stable time-stepping favours the thermal diffusion regime,
-% this makes the time-step too slow for material advection to propagate.
-
-% A possible fix may be to introduce an implicit thermal solver which is
-% compatible with larger time-stepping.
-
-% workaround the problem by overprinting the air temperature at minimum
-% temperature
-
 % planetesimal: user control script
 clear; close all;
 
 
 %% set model run options
-RUN.ID       =  'fail_demo2';          % run identifier
-RUN.plot     =  1;               % switch on to plot live output
-RUN.save     =  0;               % switch on to save output files
-RUN.nop      =  1;               % output every 'nop' grid steps of transport
-RUN.nup      =  1;               % update every 'nup' grid steps of transport
-RUN.selfgrav = 1;
+RUN.ID      =  'demo 3';          % run identifier
+RUN.plot    =  1;               % switch on to plot live output
+RUN.save    =  0;               % switch on to save output files
+RUN.nop     =  1;               % output every 'nop' grid steps of transport
+RUN.nup     =  1;               % update every 'nup' grid steps of transport
+
 
 %% set model timing
 NUM.yr      =  3600*24*365.25;  % seconds per year
@@ -32,13 +20,10 @@ NUM.dt      =  1e3*NUM.yr;      % (initial) time step [s]
 
 
 %% set model domain
-% NUM.D       =  60*1e3;        % length of z domain
-% NUM.L       =  60*1e3;        % length of x domain
-% NUM.A       =  NUM.D*0.1;     % length of free surface
-NUM.D       =  150*1e3;        % length of z domain
-NUM.L       =  150*1e3;        % length of x domain
-% NUM.A       =  NUM.D*0.1;     % length of free surface
-
+% NUM.D       =  65*1e3/4;        % length of z domain
+% NUM.L       =  65*1e3/4;        % length of x domain
+NUM.D       =  100*1e3;        % length of z domain
+NUM.L       =  100*1e3;        % length of x domain
 NUM.nz      =  100;             % number of real z block nodes
 NUM.nx      =  100;          	% number of real x block nodes
 
@@ -48,11 +33,11 @@ NUM.dz      =  NUM.D/NUM.nz;    % spacing of z coordinates
 
 
 %% set physicsal parameters
-%        solid       ||       liquid         ||     Sticky Air
-PHY.Rho0.s  =  3300;    PHY.Rho0.l  =  2600;    PHY.Rho0.a  =   0;       % reference density [kg/m3]
-PHY.Eta0.s  =  1e20;    PHY.Eta0.l  =  1e1;     PHY.Eta0.a  =   1e15;    % reference viscosity [Pas]
-PHY.aT0     =  3e-5;                            PHY.aT0a    =   0;       % thermal expansivity [1/K]
-PHY.kT0     =  1;                               PHY.kT0a    =   300;    % Thermal conductivity [W/m/K]
+%        solid       ||       liquid
+PHY.Rho0.s  =  3300;    PHY.Rho0.l  =  2600;        % reference density [kg/m3]
+PHY.Eta0.s  =  1e20;    PHY.Eta0.l  =  1e2;         % reference viscosity [Pas]
+PHY.aT0     =  3e-5;            % thermal expansivity [1/K]
+PHY.kT0     =  10;              % Thermal conductivity [W/m/K]
 PHY.Cp0     =  1000;            % Volumetric heat capacity [J/kg/K]
 PHY.Hr0     =  1e-6;            % Radiogenic heat productivity [W/m3]
 PHY.gz      =  10;              % z-gravity 
@@ -60,27 +45,22 @@ PHY.gx      =  0;               % x-gravity
 PHY.k0      =  1e-7;            % background permeability
 
 %% set initial condition
-SOL.T0      =  298;           	% reference/top potential temperature [C]
-SOL.T1      =  1000;           	% bottom potential temperature (if different from top) [C]
-SOL.Ta      =  298;             % Air temperature
-SOL.dT      =  200;           	% temperature perturbation amplitude [C]
+SOL.T0      =  1000;           	% reference/top potential temperature [C]
+SOL.T1      =  2000;           	% bottom potential temperature (if different from top) [C]
+SOL.Ta      =  298;
+SOL.dT      =  500;           	% temperature perturbation amplitude [C]
 SOL.rT      =  NUM.L/5;         % radius of hot plume [m]
 SOL.zT      =  NUM.D*2/3;         % z-position of hot plume [m]
 SOL.xT      =  NUM.L/2;         % x-position of hot plume [m]
 
 SOL.phi0    =  0.01;            % background liquid fraction [vol]
-% SOL.phi0    =  0;            % background liquid fraction [vol]
-SOL.dphi    =  0.09;           	% liquid fraction perturbation amplitude [vol]
+SOL.dphi    =  0.01;           	% liquid fraction perturbation amplitude [vol]
 SOL.philim  =  1e-4;            % limit liquid fraction for numerical stability
 
-SOL.Ttype   = 'constant';       % constant ambient background temperature
+% SOL.Ttype   = 'constant';       % constant ambient background temperature
 % SOL.Ttype   = 'linear';         % linear temperaure profile between top and bottom
-% SOL.Ttype   = 'gaussian';       % Gaussian central plume
+SOL.Ttype   = 'gaussian';       % Gaussian central plume
 % SOL.Ttype   = 'hot bottom';     % hot deep layer, skips the initial T diffusion stage
-
-SOL.PhiType = 'constant';
-SOL.PhiType = 'wet bottom'
-% SOL.PhiType = 'gaussian';
 
 
 %% set boundary conditions
@@ -104,7 +84,7 @@ NUM.AdvnScheme  = 'fromm';
 % NUM.AdvnScheme  = 'third upwind'
 % NUM.AdvnScheme  = 'flxdiv'
 
-NUM.CFL         = 0.25;   	% Courant number to limit physical time step
+NUM.CFL         = 0.5;   	% Courant number to limit physical time step
 NUM.theta     	= 0.5;      % 0 = backwards Euler, 0.5 = Crank-Nicholson, 1 = Forward Euler
 NUM.restol    	= 1e-3;     % residual tolerance for nonlinear iterations
 NUM.cstab     	= 1e-11;     % stabilising coefficient for P-diagonal
@@ -113,17 +93,9 @@ NUM.cstab     	= 1e-11;     % stabilising coefficient for P-diagonal
 %% start model run [do not modify]
 
 % check thermal Rayleigh number
-SOL.Ra = PHY.Rho0.l*PHY.aT0.*(SOL.T1-SOL.T0)*(NUM.L^3)*PHY.gz/PHY.Eta0.l/(PHY.kT0/PHY.Rho0.l/PHY.Cp0);
-% check characteristic fluid velocity
-SOL.W0 = (PHY.k0*(SOL.phi0+SOL.dphi)^3)*(PHY.Rho0.s-PHY.Rho0.l)*PHY.gz/PHY.Eta0.l/(SOL.phi0+SOL.dphi);
-% check compaction length
-SOL.Lc = ((PHY.k0*(SOL.phi0+SOL.dphi)^3)*PHY.Eta0.s/(SOL.phi0+SOL.dphi)/PHY.Eta0.l)^(1/2);
+SOL.Ra = PHY.Rho0.l*PHY.aT0*(SOL.T1-SOL.T0)*(NUM.L^3)*PHY.gz/PHY.Eta0.l/(PHY.kT0/PHY.Rho0.l/PHY.Cp0);
 if SOL.Ra < 1e3
     disp('WARNING: Rayleigh number too low, no free convection')
-end
-
-if NUM.D < SOL.Lc
-   disp('WARNING: compaction length too low, no fluid migration') 
 end
 
 % create output directory

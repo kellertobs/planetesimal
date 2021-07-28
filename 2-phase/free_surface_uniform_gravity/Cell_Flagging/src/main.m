@@ -21,16 +21,30 @@ while NUM.time < NUM.tend && NUM.step < NUM.maxstep
     % % Solve fluid mechanics equations
     % % =============================================================
     
-    if ~mod(NUM.step,round(2*RUN.nup/NUM.CFL))  % perform every 'nup' gridsteps of transport    
-        if RUN.selfgrav; solve_gravity; end
+    if ~mod(NUM.step,round(2*RUN.nup/NUM.CFL))  % perform every 'nup' gridsteps of transport
+        up2date;                    % update materials & deformation
         solve_fluidmech;            % solve  fluid mechanics
-
+        up2date;                    % update materials & deformation
+%         figure(2)
+%         subplot(1,2,1)
+%         imagesc(NUM.xP(2:end-1),NUM.zP(2:end-1),SOL.Ha)
+%         colormap(subplot(1,2,1),cm2)
+%         axis ij equal tight;
+%         colorbar
+%         title('adiabatic heating')
+%         subplot(1,2,2)
+%         imagesc(NUM.xP,NUM.zP,SOL.Hs)
+%         colormap(subplot(1,2,2),cm2)
+%         axis ij equal tight;
+%         colorbar
+%         title('shear heating')
+%         drawnow
     end
     
-    % update liquid fraction % not yet updated for sticky air yet
+    % update liquid fraction
     [Div_va] = phi_adv(SOL.U.s,SOL.W.s,1-SOL.phi,NUM.dx,NUM.dz,'flxdiv');
     SOL.phi(2:end-1,2:end-1) = SOL.phi(2:end-1,2:end-1) + Div_va * NUM.dt;
-
+    up2date;                    % update materials & deformation
     % % =============================================================
     % % Solve thermo-chemical equations
     % % =============================================================

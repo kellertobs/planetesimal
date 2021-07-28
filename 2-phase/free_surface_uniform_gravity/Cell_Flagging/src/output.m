@@ -14,19 +14,19 @@ if RUN.plot
     
     subplot(2,3,1)
     imagesc(NUM.xU,NUM.zU,SOL.U.l); hold on;
-    quiver(NUM.xP(xq),NUM.zP(zq),SOL.U.l(zq,xq),SOL.W.l(zq,xq),'k')
+    quiver(NUM.xP(xq),NUM.zP(zq),SOL.UP.s(zq,xq),SOL.WP.s(zq,xq),'k')
     colormap(subplot(2,3,1),cm2)
     axis ij equal tight;
     colorbar
-    title('x-fluid-velocity [ms^-^1]')
+    title('solid-velocity [ms^-^1]')
     
     subplot(2,3,2)
     imagesc(NUM.xW,NUM.zW,-SOL.W.l); hold on;
-    quiver(NUM.xP(xq),NUM.zP(zq),SOL.U.l(zq,xq),SOL.W.l(zq,xq),'k')
+    quiver(NUM.xP(xq),NUM.zP(zq),SOL.Useg(zq,xq),SOL.Wseg(zq,xq),'k')
     colormap(subplot(2,3,2),cm2)
     axis ij equal tight;
     colorbar
-    title('z-fluid-velocity [ms^-^1]')
+    title('segregation-velocity [ms^-^1]')
     
     subplot(2,3,3)
     imagesc(NUM.xP,NUM.zP,SOL.Pt.l); hold on;
@@ -57,57 +57,8 @@ if RUN.plot
     colorbar
     title('melt fraction')
     
-
-    fh100 = figure(100); clf;
-    subplot(2,3,1)
-    imagesc(NUM.xU,NUM.zU,SOL.U.s); hold on;
-    colormap(subplot(2,3,1),cm2)
-    quiver(NUM.xP(xq),NUM.zP(zq),SOL.U.s(zq,xq),SOL.W.s(zq,xq),'k')
-    axis ij equal tight;
-    colorbar
-    title('matrix x-velocity [ms^-^1]')
-    
-    subplot(2,3,2)
-    imagesc(NUM.xW,NUM.zW,-SOL.W.s); hold on;
-    colormap(subplot(2,3,2),cm2)
-    quiver(NUM.xP(xq),NUM.zP(zq),SOL.U.s(zq,xq),SOL.W.s(zq,xq),'k')
-    axis ij equal tight;
-    colorbar
-    title('matrix z-velocity [ms^-^1]')
-    
-    subplot(2,3,3)
-    imagesc(NUM.xP,NUM.zP,SOL.P.l); hold on;
-    colormap(subplot(2,3,3),cm2)
-    axis ij equal tight;
-    colorbar
-    title('liquid pressure [Pa]')
-    
-    subplot(2,3,4)
-    imagesc(NUM.xU,NUM.zU,SOL.Useg); hold on;
-    colormap(subplot(2,3,4),cm2)
-    quiver(NUM.xP(xq),NUM.zP(zq),SOL.Useg(zq,xq),SOL.Wseg(zq,xq),'k')
-    axis ij equal tight;
-    colorbar
-    title('segr. x-velocity [ms^-^1]')
-    
-    subplot(2,3,5)
-    imagesc(NUM.xW,NUM.zW,-SOL.Wseg); hold on;
-    colormap(subplot(2,3,5),cm2)
-    quiver(NUM.xP(xq),NUM.zP(zq),SOL.Useg(zq,xq),SOL.Wseg(zq,xq),'k')
-    axis ij equal tight;
-    colorbar
-    title('segr. z-velocity [ms^-^1]')
-    
-    subplot(2,3,6)
-    imagesc(NUM.xP,NUM.zP,SOL.Pcmp); hold on;
-    colormap(subplot(2,3,6),cm2)
-    axis ij equal tight;
-    colorbar
-    title('compct. pressure [Pa]')
-    
-    
     drawnow;
-    
+
 end
 
 % save output
@@ -120,7 +71,7 @@ if RUN.save
     clear aa A AA advn_T diff_T dtadvn dtdiff EtaC1 EtaC2 EtaP1 EtaP2 ii II
     clear indP indU indW IR jj JJ jj1 jj2 jj3 jj4 kappa pert Pscale RhoRef
     clear rr R RR S To dTdto toc_assmb toc_solve toc_update xq zq V fh1
-    
+
     % save output data
     name = ['../out/',RUN.ID,'/',RUN.ID,'_cont'];
     save([name,'.mat']);

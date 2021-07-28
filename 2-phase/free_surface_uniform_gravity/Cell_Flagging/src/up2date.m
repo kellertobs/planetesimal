@@ -3,8 +3,10 @@
 % print update header
 fprintf(1,'  ---  update materials & deformation \n');
 tic;  % start clock on update
-% profile on
+
+
 %% update thermal parameters (currently held constant)
+
 
 %% update permeability
 MAT.k   = PHY.k0*max(SOL.philim,SOL.phi).^3;
@@ -14,29 +16,16 @@ MAT.kW  = (MAT.k(1:end-1,:)+MAT.k(2:end,:))/2;
 MAT.kU  = (MAT.k(:,1:end-1)+MAT.k(:,2:end))/2;
 
 
-%% update liquid fraction
-SOL.phi(NUM.PHI<0)     = 0;
-SOL.phiC = (SOL.phi(1:end-1,1:end-1) ...
-    +  SOL.phi(2:end  ,1:end-1) ...
-    +  SOL.phi(1:end-1,2:end  ) ...
-    +  SOL.phi(2:end  ,2:end  ))/4;
-% interpolate to staggered vz nodes
-SOL.phiW = (SOL.phi(1:end-1,:)+SOL.phi(2:end,:))/2;
-% interpolate to staggered vx nodes
-SOL.phiU = (SOL.phi(:,1:end-1)+SOL.phi(:,2:end))/2;
-
 %% update T-dependent density
-MAT.Rho.s = PHY.RhoR.s.*(1 - MAT.aT.*(SOL.T-SOL.T0));    % solid density on centre nodes
-MAT.Rho.l = PHY.RhoR.l.*(1 - MAT.aT.*(SOL.T-SOL.T0));    % liquid
+MAT.Rho.s = PHY.Rho0.s.*(1 - MAT.aT.*(SOL.T-SOL.T0));    % solid density on centre nodes
+MAT.Rho.l = PHY.Rho0.l.*(1 - MAT.aT.*(SOL.T-SOL.T0));    % liquid
 MAT.Rho.t = SOL.phi.*MAT.Rho.l + (1-SOL.phi).*MAT.Rho.s; % total density
 % interpolate to staggered vz nodes
 MAT.RhoW.s = (MAT.Rho.s(1:end-1,:)+MAT.Rho.s(2:end,:))/2;
 MAT.RhoW.l = (MAT.Rho.l(1:end-1,:)+MAT.Rho.l(2:end,:))/2;
-MAT.RhoW.t = (MAT.Rho.t(1:end-1,:)+MAT.Rho.t(2:end,:))/2;
 % interpolate to staggered vx nodes
 MAT.RhoU.s = (MAT.Rho.s(:,1:end-1)+MAT.Rho.s(:,2:end))/2;
 MAT.RhoU.l = (MAT.Rho.l(:,1:end-1)+MAT.Rho.l(:,2:end))/2;
-MAT.RhoU.t = (MAT.Rho.t(:,1:end-1)+MAT.Rho.t(:,2:end))/2;
 
 
 %% update physical time step
@@ -45,22 +34,15 @@ dtadvns = min( NUM.dx/2/max(Vs) , NUM.dz/2/max(Vs) );
 Vl      = abs([SOL.U.l(:);SOL.W.l(:)]);
 dtadvnl = min( NUM.dx/2/max(Vl) , NUM.dz/2/max(Vl) );  % stable time step for T advection
 dtadvn  = min(dtadvnl,dtadvns);
-% 
-kappas  = MAT.kT(NUM.PHI>0)./MAT.Rho.s(NUM.PHI>0)./MAT.Cp(NUM.PHI>0);
-dtdiffs = (max(NUM.dx,NUM.dz)/2)^2 / max(kappas(:));     % stable time step for T diffusion
-kappal  = MAT.kT(NUM.PHI>0)./MAT.Rho.l(NUM.PHI>0)./MAT.Cp(NUM.PHI>0);
-dtdiffl = (max(NUM.dx,NUM.dz)/2)^2 / max(kappal(:));
 
-% kappas  = MAT.kT(:)./MAT.Rho.s(:)./MAT.Cp(:);
-% dtdiffs = (max(NUM.dx,NUM.dz)/2)^2 / max(kappas);     % stable time step for T diffusion
-% kappal  = MAT.kT(:)./MAT.Rho.l(:)./MAT.Cp(:);
-% dtdiffl = (max(NUM.dx,NUM.dz)/2)^2 / max(kappal);
-
+kappas  = MAT.kT(:)./MAT.Rho.s(:)./MAT.Cp(:);
+dtdiffs = (max(NUM.dx,NUM.dz)/2)^2 / max(kappas);     % stable time step for T diffusion
+kappal  = MAT.kT(:)./MAT.Rho.l(:)./MAT.Cp(:);
+dtdiffl = (max(NUM.dx,NUM.dz)/2)^2 / max(kappal);
 dtdiff  = min(dtdiffl,dtdiffs);
+
 NUM.dt = NUM.CFL * min(dtdiff,dtadvn);              % fraction of minimum stable time step
-if dtdiff<dtadvn
-    disp('thermal diffusion regime')
-end
+
 
 %% update T-dependent viscosity (to be implemented)
 MAT.Eta.s  = MAT.Eta.s;
@@ -81,7 +63,19 @@ MAT.EtaW.l = (MAT.Eta.l(1:end-1,:)+MAT.Eta.l(2:end,:))/2;
 MAT.EtaU.s = (MAT.Eta.s(:,1:end-1)+MAT.Eta.s(:,2:end))/2;
 MAT.EtaU.l = (MAT.Eta.l(:,1:end-1)+MAT.Eta.l(:,2:end))/2;
 
-%% update strain-rate components Not yet updated to the true strain rate tensors
+%% update liquid fraction
+SOL.phi     = SOL.phi;
+SOL.phiC = (SOL.phi(1:end-1,1:end-1) ...
+    +  SOL.phi(2:end  ,1:end-1) ...
+    +  SOL.phi(1:end-1,2:end  ) ...
+    +  SOL.phi(2:end  ,2:end  ))/4;
+% interpolate to staggered vz nodes
+SOL.phiW = (SOL.phi(1:end-1,:)+SOL.phi(2:end,:))/2;
+% interpolate to staggered vx nodes
+SOL.phiU = (SOL.phi(:,1:end-1)+SOL.phi(:,2:end))/2;
+
+
+%% update strain-rate components
 % % get volumetric strain-rate (velocity divergence)
 DEF.ups(2:end-1,2:end-1) = diff(SOL.U.s(2:end-1,:),1,2)./NUM.dx ...
     + diff(SOL.W.s(:,2:end-1),1,1)./NUM.dz;      % velocity divergence
@@ -131,15 +125,13 @@ SOL.Hs = 2.*DEF.eII.*DEF.tII...
     + (SOL.Pcmp.^2).*SOL.phi./MAT.Eta.s;
 
 % update adiabatic heating
-% SOL.Ha = (SOL.WP.*PHY.gz + SOL.UP.*PHY.gx) .* MAT.Rho.t.*MAT.aT.*SOL.T;
-
 SOL.Ha = (1-SOL.phi(2:end-1,2:end-1)).*SOL.T(2:end-1,2:end-1)    .*MAT.aT(2:end-1,2:end-1)...
     .*   (1-SOL.phi(2:end-1,2:end-1)).*MAT.Rho.s(2:end-1,2:end-1)...
-    .*   (PHY.gzP(2:end-1,2:end-1).*SOL.WP.s(2:end-1,2:end-1) + PHY.gxP(2:end-1,2:end-1).*SOL.UP.s(2:end-1,2:end-1))...
+    .*   (PHY.gz.*SOL.WP.s(2:end-1,2:end-1) + PHY.gx.*SOL.UP.s(2:end-1,2:end-1))...
     +     SOL.phi(2:end-1,2:end-1)   .*SOL.T(2:end-1,2:end-1).*MAT.aT(2:end-1,2:end-1)...
     .*    SOL.phi(2:end-1,2:end-1)   .*MAT.Rho.l(2:end-1,2:end-1)...
-    .*   (PHY.gzP(2:end-1,2:end-1).*SOL.WP.l(2:end-1,2:end-1) + PHY.gxP(2:end-1,2:end-1).*SOL.UP.l(2:end-1,2:end-1));
+    .*   (PHY.gz.*SOL.WP.l(2:end-1,2:end-1) + PHY.gx.*SOL.UP.l(2:end-1,2:end-1));
 
-% profile report
+
 toc_update = toc;
 fprintf(1,'       update time %1.4f s \n\n',toc_update);

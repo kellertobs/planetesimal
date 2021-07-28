@@ -21,10 +21,10 @@ NUM.NU   =  NUM.nxU*NUM.nzU;                    % total number of x-face nodes
 NUM.NDOF =  NUM.NP+NUM.NW+NUM.NU;               % total number of all degrees of freedum
 
 % set coordinate vectors
-NUM.xC   =  -NUM.L/2:NUM.dx:NUM.L/2;                    % Horizontal coordinates of corner nodes [m]
-NUM.zC   =  -NUM.D/2:NUM.dz:NUM.D/2;                    % Vertical   coordinates of corner nodes [m]
-NUM.xP   =  -NUM.L/2-NUM.dx/2:NUM.dx:NUM.L/2+NUM.dx/2;	% Horizontal coordinates of centre nodes [m]
-NUM.zP   =  -NUM.D/2-NUM.dz/2:NUM.dz:NUM.D/2+NUM.dz/2;	% Vertical   coordinates of centre nodes [m]
+NUM.xC   =  0:NUM.dx:NUM.L;                     % Horizontal coordinates of corner nodes [m]
+NUM.zC   =  0:NUM.dz:NUM.D;                     % Vertical   coordinates of corner nodes [m]
+NUM.xP   =  -NUM.dx/2:NUM.dx:NUM.L+NUM.dx/2;	% Horizontal coordinates of centre nodes [m]
+NUM.zP   =  -NUM.dz/2:NUM.dz:NUM.D+NUM.dz/2;	% Vertical   coordinates of centre nodes [m]
 NUM.xW   =  NUM.xP;                             % Horizontal coordinates of z-face nodes [m]
 NUM.zW   =  NUM.zC;                             % Vertical   coordinates of z-face nodes [m]
 NUM.xU   =  NUM.xC;                             % Horizontal coordinates of x-face nodes [m]
@@ -36,79 +36,47 @@ NUM.zU   =  NUM.zP;                             % Vertical   coordinates of x-fa
 [NUM.XW,NUM.ZW] = meshgrid(NUM.xW,NUM.zW);      % z-face nodes grid
 [NUM.XU,NUM.ZU] = meshgrid(NUM.xU,NUM.zU);      % x-face nodes grid
 
+
 %% setup mapping arrays
 NUM.MapW  =  reshape(1:NUM.NW,NUM.nzW,NUM.nxW);
 NUM.MapU  =  reshape(1:NUM.NU,NUM.nzU,NUM.nxU) + NUM.NW;
 NUM.MapP  =  reshape(1:NUM.NP,NUM.nzP,NUM.nxP); % + NUM.NW + NUM.NU;
 
-%% setup level-set free surface grid
-if RUN.selfgrav
-NUM.PHI = zeros(NUM.nxP,NUM.nzP);
-NUM.RdP = nthroot(NUM.XP.^2 + NUM.ZP.^2,2); % Radial distance from centre
-NUM.RP      = NUM.L*0.3;
-NUM.PHI = -NUM.RdP/NUM.RP + 1;
-% NUM.RdC = nthroot(NUM.XC.^2 + NUM.ZC.^2,2);
-end
+%% setup cell flagging
+FlagUpdate
 
-%% setup initial melt fraction
-switch SOL.PhiType
-    case 'gaussian'
-        % set liquid fraction initial condition (uniform background + gaussian)
-        SOL.phi = zeros(NUM.nzP,NUM.nxP) + SOL.phi0;
-        SOL.phi = SOL.phi + SOL.dphi.*exp(-(NUM.XP-SOL.xT).^2./SOL.rT.^2 - (NUM.ZP-SOL.zT).^2./SOL.rT.^2 );
-        SOL.phi(1:11,:) = SOL.philim;
-    case 'constant'
-        SOL.phi = zeros(NUM.nzP,NUM.nxP) + SOL.phi0 + SOL.dphi;
-        SOL.phi(NUM.PHI<0) = 0; 
-    case 'wet bottom'
-        SOL.phi = zeros(NUM.nzP,NUM.nxP) + SOL.phi0;
-        SOL.phi((NUM.RdP<(NUM.D/8))) = SOL.phi0 + SOL.dphi;
-        SOL.phi(NUM.PHI<0) = 0;
-end
 
-%% setup material property arrays
-MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.s;            % solid density
-MAT.Rho.l	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.l;            % liquid density
-MAT.Eta.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.s;            % viscosity
-MAT.Eta.l	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.l;            % liquid viscosity
-MAT.aT      = zeros(NUM.nzP,NUM.nxP) + PHY.aT0;               % thermal expansivity
-MAT.kT      = zeros(NUM.nzP,NUM.nxP) + PHY.kT0;               % thermal conductivity
-MAT.Cp      = zeros(NUM.nzP,NUM.nxP) + PHY.Cp0;   	          % heat capacity
-MAT.k       = zeros(NUM.nzP,NUM.nxP) + PHY.k0 .* SOL.phi0^3;  % permeability
-
-% set sticky air properties
-MAT.Rho.s(NUM.PHI<0)   = 0;             PHY.RhoR.s = MAT.Rho.s;
-MAT.Rho.l(NUM.PHI<0)   = 0;             PHY.RhoR.l = MAT.Rho.l;
-MAT.Rho.t              = SOL.phi.*MAT.Rho.l + (1-SOL.phi).*MAT.Rho.s; % total density
-MAT.Eta.s(NUM.PHI<0)   = PHY.Eta0.a;    PHY.EtaR.s = MAT.Eta.s;
-MAT.aT(NUM.PHI<0)      = PHY.aT0a;
-MAT.kT(NUM.PHI<0)      = PHY.kT0a;
-
-%% initialise gravity
-if RUN.selfgrav 
-PHY.gxP = zeros(NUM.nxP,NUM.nzP); PHY.gzP = zeros(NUM.nxP,NUM.nzP); 
-solve_gravity;
-end
 %% setup initial condition for thermo-chemical solution arrays
 % set temperature initial condition
 pert = -NUM.dx/2.*cos(NUM.XP*2*pi/NUM.D);
 switch SOL.Ttype
     case 'constant'     % constant temperature
-        SOL.T  = zeros(NUM.nzP,NUM.nxP) + SOL.T1;
-        SOL.T(NUM.PHI<0) = SOL.Ta;  
+        SOL.T  = zeros(NUM.nzP,NUM.nxP) + SOL.Ta;
+        SOL.T(NUM.flag.P == 0) = SOL.T0;
     case 'linear'       % linear temperature gradient with depth
         SOL.T  = SOL.T0 + abs(NUM.ZP+pert)./NUM.D.*(SOL.T1-SOL.T0);
     case 'gaussian'     % constant temperature with gaussian plume
-        SOL.T = zeros(NUM.nzP,NUM.nxP) + SOL.T0;
+        SOL.T  = zeros(NUM.nzP,NUM.nxP) + SOL.Ta;
+        SOL.T(NUM.flag.P == 0) = SOL.T0;
+         dtdtd = SOL.dT.*exp(-(NUM.XP-SOL.xT).^2./SOL.rT.^2 - (NUM.ZP-SOL.zT).^2./SOL.rT.^2 );
         SOL.T = SOL.T + SOL.dT.*exp(-(NUM.XP-SOL.xT).^2./SOL.rT.^2 - (NUM.ZP-SOL.zT).^2./SOL.rT.^2 );
     case 'hot bottom'
-        SOL.T = zeros(NUM.nzP,NUM.nxP) + SOL.T1;
-        SOL.T((NUM.RdP<(NUM.D/8))) = SOL.T1 + SOL.dT;
-        SOL.T(NUM.PHI<0) = SOL.Ta; 
+        SOL.T = zeros(NUM.nzP,NUM.nxP) + SOL.T0;
+        SOL.T = SOL.T + 1./(1+exp(-(NUM.ZP-SOL.zT+pert)./(NUM.D/50))) .* (SOL.T1-SOL.T0);
 end
+
+% convert from potential to natural temperature
+% SOL.T = SOL.T.*exp(PHY.aT0*(PHY.gz.*(NUM.ZP+pert) + PHY.gx.*NUM.XP)./PHY.Cp0);
+
 % zero gradient boundaries
 SOL.T([1 end],:) = SOL.T([2 end-1],:);
 SOL.T(:,[1 end]) = SOL.T(:,[2 end-1]);
+
+% set liquid fraction initial condition (uniform background + gaussian)
+SOL.phi = zeros(NUM.nzP,NUM.nxP) + SOL.philim;
+SOL.phi(NUM.flag.P == 0) = SOL.phi0;
+SOL.phi = SOL.phi + SOL.dphi.*exp(-(NUM.XP-SOL.xT).^2./SOL.rT.^2 - (NUM.ZP-SOL.zT).^2./SOL.rT.^2 );
+
 
 %% setup velocity-pressure solution arrays
 
@@ -129,6 +97,17 @@ SOL.WP.l(2:end-1,:) = SOL.W.l(1:end-1,:)+SOL.W.l(2:end,:)./2;
 % set segregation velocities and compaction pressures
 SOL.Useg    = SOL.U.l;   SOL.Wseg   = SOL.W.l;  SOL.Pcmp = SOL.P.s;
 SOL.UP.seg  = SOL.UP.s;  SOL.WP.seg = SOL.WP.s;
+
+%% setup material property arrays
+MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.s;  	  % solid density
+MAT.Rho.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Rho0.l;        % liquid density
+MAT.Eta.s	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.s;   	  % viscosity
+MAT.Eta.l	= zeros(NUM.nzP,NUM.nxP) + PHY.Eta0.l;   	  % liquid viscosity
+MAT.aT	= zeros(NUM.nzP,NUM.nxP) + PHY.aT0;               % thermal expansivity
+MAT.kT	= zeros(NUM.nzP,NUM.nxP) + PHY.kT0;               % thermal conductivity
+MAT.Cp	= zeros(NUM.nzP,NUM.nxP) + PHY.Cp0;   	          % heat capacity
+MAT.k   = zeros(NUM.nzP,NUM.nxP) + PHY.k0 .* SOL.phi0^3;  % permeability
+
 
 %% setup deformation property arrays
 DEF.ups = zeros(NUM.nzP,NUM.nxP);               % velocity divergence on centre nodes
@@ -152,10 +131,26 @@ MAT.Hr	 = zeros(NUM.nzP,NUM.nxP) + PHY.Hr0;	% radiogenic heating
 %% update nonlinear material properties
 up2date;
 
-SOL.Lc = max(max((MAT.k.*MAT.Eta.s./MAT.Eta.l./SOL.phi).^(1/2)));
+
 %% output initial condition
 RUN.frame = 0;     % initialise output frame count
 NUM.time  = 0;      % initialise time count
 NUM.step  = 0;      % initialise time step count
 output;
 
+
+% Topographic function
+function Y = TopoFun( X, z, x, Ds, TopoType)
+switch TopoType
+    case 'horizontal'
+        Y = zeros(z, x) + Ds;
+    case 'depression'
+        
+    case 'bulge'
+        
+    case 'square'
+        
+    case 'circle'
+        
+end
+end
