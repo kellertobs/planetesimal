@@ -7,8 +7,8 @@ fprintf(1,'*****  prepare output frame %d  *****\n',RUN.frame);
 %% plot output figures
 if RUN.plot
     
-    xq = round(NUM.nx/10)/2+1:round(NUM.nx/10):NUM.nxP;  % x-indexes for quiver plots
-    zq = round(NUM.nx/10)/2+1:round(NUM.nx/10):NUM.nxP;  % z-indexes for quiver plots
+    xq = round(NUM.nx/10/2)+1:round(NUM.nx/10):NUM.nxP;  % x-indexes for quiver plots
+    zq = round(NUM.nx/10/2)+1:round(NUM.nx/10):NUM.nxP;  % z-indexes for quiver plots
     
     fh1 = figure(1); clf;
     
@@ -43,8 +43,10 @@ if RUN.plot
     colorbar
     title('Temperature [C]')
     
+    Rhoplot = MAT.Rho.t;
+    Rhoplot(NUM.PHI<=0) = NaN;
     subplot(2,3,5);
-    imagesc(NUM.xP,NUM.zP,MAT.Rho.t);
+    imagesc(NUM.xP,NUM.zP,Rhoplot);
     colormap(subplot(2,3,5),cm1)
     axis ij equal tight;
     colorbar

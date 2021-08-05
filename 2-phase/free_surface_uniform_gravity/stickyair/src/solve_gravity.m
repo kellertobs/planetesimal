@@ -75,12 +75,12 @@ PHY.gP(:,[1 end]) = 0;
 toc_solve = toc;  % stop clock system solution
 fprintf(1,'       solution time %1.4f s \n\n',toc_solve);
 
-figure()
-subplot(1,3,1)
-imagesc(NUM.xU,NUM.zU,PHY.gx); colorbar; axis ij image; title('gx')
-
-subplot(1,3,2)
-imagesc(NUM.xW,NUM.zW,PHY.gz); colorbar; axis ij image; title('gz')
-
-subplot(1,3,3)
-imagesc(NUM.xW,NUM.zW,SOL.G); colorbar; axis ij image; title('g')
+% figure()
+% subplot(1,3,1)
+% imagesc(NUM.xU,NUM.zU,PHY.gx); colorbar; axis ij image; title('gx')
+% 
+% subplot(1,3,2)
+% imagesc(NUM.xW,NUM.zW,PHY.gz); colorbar; axis ij image; title('gz')
+% 
+% subplot(1,3,3)
+% imagesc(NUM.xW,NUM.zW,SOL.G); colorbar; axis ij image; title('g')

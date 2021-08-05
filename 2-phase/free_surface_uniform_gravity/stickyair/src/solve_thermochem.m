@@ -16,12 +16,14 @@ advn_T = advection(u_eff,w_eff,SOL.T,NUM.dx,NUM.dz,NUM.AdvnScheme);
 diff_T = (diff(SOL.T(:,2:end-1),2,1)./NUM.dz^2  ...
        +  diff(SOL.T(2:end-1,:),2,2)./NUM.dx^2) ...
        .* MAT.kT(2:end-1,2:end-1);
-
+% diff_T = 0;
 % heat capacity density
 RhoCp = MAT.Rho.t.*MAT.Cp;
 
 % get total rate of change
 SOL.dTdt = - advn_T + (diff_T + MAT.Hr(2:end-1,2:end-1) + SOL.Hs(2:end-1,2:end-1) + SOL.Ha)./RhoCp(2:end-1,2:end-1);
+SOL.dTdt(isinf(SOL.dTdt)) = 0; 
+
 % SOL.dTdt = - advn_T + diff_T./RhoCp(2:end-1,2:end-1);
 
 % update temperature solution
@@ -38,7 +40,7 @@ end
 
 % placeholder sticky air boundary conditions
 % [za,xa] = find(SOL.phiC<9e-4);
-SOL.T(MAT.Rho.t<PHY.Rho0.l) = SOL.Ta;
+SOL.T(NUM.PHI<=0) = SOL.Ta;
 
 % apply bottom boundary conditions
 switch SOL.BCTempBot
@@ -59,3 +61,10 @@ end
 toc_solve = toc;  % stop clock temperature solution
 fprintf(1,'       solution time %1.4f s \n\n',toc_solve);
 
+% figure(4)
+% subplot(1,2,1)
+% imagesc(NUM.xP(2:end-1),NUM.zP(2:end-1),diff_T); colormap(subplot(1,2,1),cm2); colorbar; axis ij image
+% title('diffusion')
+% subplot(1,2,2)
+% imagesc(NUM.xP(2:end-1),NUM.zP(2:end-1),advn_T); colormap(subplot(1,2,2),cm2); colorbar; axis ij image
+% title('advection')

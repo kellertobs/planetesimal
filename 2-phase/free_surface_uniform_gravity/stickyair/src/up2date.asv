@@ -8,7 +8,7 @@ tic;  % start clock on update
 
 %% update permeability
 MAT.k   = PHY.k0*max(SOL.philim,SOL.phi).^3;
-MAT.k(NUM.PHI<=0)     = PHY.k0*SOL.philim^3;
+MAT.k(NUM.PHI<0)     = PHY.k0*SOL.philim^3;
 % interpolate to staggered vz nodes
 MAT.kW  = (MAT.k(1:end-1,:)+MAT.k(2:end,:))/2;
 % interpolate to staggered vx nodes
@@ -16,7 +16,7 @@ MAT.kU  = (MAT.k(:,1:end-1)+MAT.k(:,2:end))/2;
 
 
 %% update liquid fraction
-SOL.phi(NUM.PHI<=0)     = 0;
+SOL.phi(NUM.PHI<0)     = 0;
 SOL.phiC = (SOL.phi(1:end-1,1:end-1) ...
     +  SOL.phi(2:end  ,1:end-1) ...
     +  SOL.phi(1:end-1,2:end  ) ...
@@ -133,9 +133,7 @@ DEF.tII(:,[1 end]) = DEF.tII(:,[2 end-1]);
 SOL.Hs = 2.*DEF.eII.*DEF.tII...
     + (SOL.UP.seg.^2).*MAT.Eta.l./MAT.k + (SOL.WP.seg.^2).*MAT.Eta.l./MAT.k ...
     + (SOL.Pcmp.^2).*SOL.phi./MAT.Eta.s;
-% shear heating above the free surface = 0; otherwise causes some high
-% shear anomalies by the boundaries
-SOL.Hs(NUM.PHI<=0) = 0;
+% shear heating above the free surface = 0; otherwise causes some high 
 
 % update adiabatic heating
 % SOL.Ha = (SOL.WP.*PHY.gz + SOL.UP.*PHY.gx) .* MAT.Rho.t.*MAT.aT.*SOL.T;
@@ -146,8 +144,6 @@ SOL.Ha = (1-SOL.phi(2:end-1,2:end-1)).*SOL.T(2:end-1,2:end-1)    .*MAT.aT(2:end-
     +     SOL.phi(2:end-1,2:end-1)   .*SOL.T(2:end-1,2:end-1).*MAT.aT(2:end-1,2:end-1)...
     .*    SOL.phi(2:end-1,2:end-1)   .*MAT.Rho.l(2:end-1,2:end-1)...
     .*   (PHY.gzP(2:end-1,2:end-1).*SOL.WP.l(2:end-1,2:end-1) + PHY.gxP(2:end-1,2:end-1).*SOL.UP.l(2:end-1,2:end-1));
-
-MAT.Hr(NUM.PHI>0) = PHY.Hr0;
 
 % profile report
 toc_update = toc;
