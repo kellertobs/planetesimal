@@ -149,6 +149,7 @@ SOL.Ha = (1-SOL.phi(2:end-1,2:end-1)).*SOL.T(2:end-1,2:end-1)    .*MAT.aT(2:end-
 
 MAT.Hr(NUM.PHI>0) = PHY.Hr0;
 
+stress_output;
 % profile report
 toc_update = toc;
 fprintf(1,'       update time %1.4f s \n\n',toc_update);

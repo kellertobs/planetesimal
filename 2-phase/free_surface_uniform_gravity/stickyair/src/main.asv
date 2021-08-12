@@ -49,10 +49,10 @@ while NUM.time < NUM.tend && NUM.step < NUM.maxstep
 %         figure(5)
 %         imagesc(NUM.xP,NUM.zP,NUM.PHI); colorbar; colormap(cm2);
         stress_output;
-%         figure(2)
-%         subplot(1,3,1); imagesc(NUM.xP,NUM.zP,MAT.k); colorbar; axis ij image; title('kP')
-%         subplot(1,3,2); imagesc(NUM.xW,NUM.zW,MAT.kW); colorbar; axis ij image; title('kW')
-%         subplot(1,3,3); imagesc(NUM.xU,NUM.zU,MAT.kU); colorbar; axis ij image; title('kU')
+        figure(2)
+        subplot(1,3,1); imagesc(NUM.xP,NUM.zP,MAT.k); colorbar; axis ij image; title('kP')
+        subplot(1,3,2); imagesc(NUM.xW,NUM.zW,MAT.kW); colorbar; axis ij image; title('kW')
+        subplot(1,3,3); imagesc(NUM.xU,NUM.zU,MAT.kU); colorbar; axis ij image; title('kU')
     end
     
     % increment time

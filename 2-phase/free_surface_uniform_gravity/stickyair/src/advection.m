@@ -1,4 +1,4 @@
-function [advn] = advection(U,W,a,dx,dz,scheme)
+function [advn] = advection(U,W,a,dx,dz,scheme,boundary)
 
 wp  = W(2:end  ,2:end-1);
 wm  = W(1:end-1,2:end-1);
@@ -14,8 +14,14 @@ vzp = max(vz,0); vzm = min(vz,0);
 agh                    = zeros(size(a)+2);
 agh(2:end-1,2:end-1)   = a;
 
-agh([1 2 end-1 end],:) = agh([3 3 end-2 end-2],:);
-agh(:,[1 2 end-1 end]) = agh(:,[3 3 end-2 end-2]);
+switch boundary
+    case 'reflective'
+        agh([1 2 end-1 end],:) = agh([3 3 end-2 end-2],:);
+        agh(:,[1 2 end-1 end]) = agh(:,[3 3 end-2 end-2]);
+    case 'edge'
+        agh([1 2 end-1 end],:) = agh([2 2 end-1 end-1],:);
+        agh(:,[1 2 end-1 end]) = agh(:,[2 2 end-1 end-1]);
+end
 
 acc = agh(3:end-2,3:end-2);
 ajp = agh(4:end-1,3:end-2);  ajpp = agh(5:end-0,3:end-2);

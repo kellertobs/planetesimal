@@ -1,24 +1,27 @@
 %% 'Sticky Air' method of free surface
 %
-% This current build is incompatible with the sticky air free surface. The
-% calculated stable time-stepping favours the thermal diffusion regime,
-% this makes the time-step too slow for material advection to propagate.
+% This current build is only stable in the darcy's flow limit. 
+% the fluid migration velocities is sufficiently fast so that the
+% time-stepping does not significantly deform the free surface. Some minor
+% bugs include high shear heating at the edges of the planetesimal domain,
+% largely fixed via the level-set zero heating at space.
+% currently the free-slip boundary condition is preferred over the normal
+% stress free boundary which shows asymmetry.
 
-% A possible fix may be to introduce an implicit thermal solver which is
-% compatible with larger time-stepping.
-
-% workaround the problem by overprinting the air temperature at minimum
-% temperature
+% Does not work for the Stoke's flow limit, The free surface deforms to a
+% square-shape. 
+% Thermally driven solid convection cannot be shown as the velocity fields
+% of the space layer overwhelm the thermal expansion induced momentum.
 
 % planetesimal: user control script
 clear; close all;
 
 
 %% set model run options
-RUN.ID       =  'dry_demo';          % run identifier
+RUN.ID       =  'thick_planetesimal_demo_NSF';          % run identifier
 RUN.plot     =  1;               % switch on to plot live output
 RUN.save     =  0;               % switch on to save output files
-RUN.nop      =  5;               % output every 'nop' grid steps of transport
+RUN.nop      =  1;               % output every 'nop' grid steps of transport
 RUN.nup      =  1;               % update every 'nup' grid steps of transport
 RUN.selfgrav = 1;
 
@@ -69,26 +72,26 @@ SOL.zT      =  0;         % z-position of hot plume [m]
 SOL.xT      =  0;         % x-position of hot plume [m]
 
 % SOL.phi0    =  0.01;            % background liquid fraction [vol]
-SOL.phi0    =  0;            % background liquid fraction [vol]
+SOL.phi0    =  0.05;            % background liquid fraction [vol]
 SOL.dphi    =  0;           	% liquid fraction perturbation amplitude [vol]
 SOL.philim  =  1e-4;            % limit liquid fraction for numerical stability
 
 SOL.Ttype   = 'constant';       % constant ambient background temperature
 % SOL.Ttype   = 'linear';         % linear temperaure profile between top and bottom
-SOL.Ttype   = 'gaussian';       % Gaussian central plume
+% SOL.Ttype   = 'gaussian';       % Gaussian central plume
 % SOL.Ttype   = 'hot bottom';     % hot deep layer, skips the initial T diffusion stage
 
-% SOL.PhiType = 'constant';
+SOL.PhiType = 'constant';
 % SOL.PhiType = 'wet bottom'
 % SOL.PhiType = 'gaussian';
-SOL.PhiType = 'dry';
+% SOL.PhiType = 'dry';
 
 
 %% set boundary conditions
 % Temperature boundary conditions
-SOL.BCTempTop     = 'isothermal';    	% 'isothermal' or 'insulating' bottom boundaries
-SOL.BCTempBot     = 'isothermal';    	% 'isothermal' or 'insulating' bottom boundaries
-SOL.BCTempSides   = 'insulating';    	% 'isothermal' or 'insulating' bottom boundaries
+% SOL.BCTempTop     = 'isothermal';    	% 'isothermal' or 'insulating' bottom boundaries
+% SOL.BCTempBot     = 'isothermal';    	% 'isothermal' or 'insulating' bottom boundaries
+% SOL.BCTempSides   = 'insulating';    	% 'isothermal' or 'insulating' bottom boundaries
 
 % Velocity boundary conditions: free slip = -1; no slip = 1
 SOL.BCleft  = -1;               % left side boundary

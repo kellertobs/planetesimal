@@ -45,7 +45,7 @@ NUM.MapP  =  reshape(1:NUM.NP,NUM.nzP,NUM.nxP); % + NUM.NW + NUM.NU;
 if RUN.selfgrav
 NUM.PHI = zeros(NUM.nxP,NUM.nzP) ;
 NUM.RdP = nthroot(NUM.XP.^2 + NUM.ZP.^2,2); % Radial distance from centre
-NUM.RP      = NUM.D/3;
+NUM.RP      = NUM.D/2;
 NUM.PHI = -erf((NUM.RdP-NUM.RP)./NUM.RP);
 % NUM.RdC = nthroot(NUM.XC.^2 + NUM.ZC.^2,2);
 end
@@ -96,7 +96,7 @@ end
 pert = -NUM.dx/2.*cos(NUM.XP*2*pi/NUM.D);
 switch SOL.Ttype
     case 'constant'     % constant temperature
-        SOL.T  = zeros(NUM.nzP,NUM.nxP) + SOL.T0;
+        SOL.T  = zeros(NUM.nzP,NUM.nxP) + SOL.T0 +SOL.dT;
         SOL.T(NUM.PHI<0) = SOL.Ta;  
     case 'linear'       % linear temperature gradient with depth
         SOL.T  = SOL.T0 + abs(NUM.ZP+pert)./NUM.D.*(SOL.T1-SOL.T0);

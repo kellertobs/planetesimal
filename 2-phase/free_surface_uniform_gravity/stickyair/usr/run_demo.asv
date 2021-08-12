@@ -1,24 +1,27 @@
 %% 'Sticky Air' method of free surface
 %
-% This current build is incompatible with the sticky air free surface. The
-% calculated stable time-stepping favours the thermal diffusion regime,
-% this makes the time-step too slow for material advection to propagate.
+% This current build is only stable in the darcy's flow limit. 
+% the fluid migration velocities is sufficiently fast so that the
+% time-stepping does not significantly deform the free surface. Some minor
+% bugs include high shear heating at the edges of the planetesimal domain,
+% largely fixed via the level-set zero heating at space.
+% currently the free-slip boundary condition is preferred over the normal
+% stress free boundary which shows asymmetry.
 
-% A possible fix may be to introduce an implicit thermal solver which is
-% compatible with larger time-stepping.
-
-% workaround the problem by overprinting the air temperature at minimum
-% temperature
+% Does not work for the Stoke's flow limit, The free surface deforms to a
+% square-shape. 
+% Thermally driven solid convection cannot be shown as the velocity fields
+% of the space layer overwhelm the thermal expansion induced
 
 % planetesimal: user control script
 clear; close all;
 
 
 %% set model run options
-RUN.ID       =  'fail_demo2';          % run identifier
+RUN.ID       =  'thick_planetesimal_demo_NSF';          % run identifier
 RUN.plot     =  1;               % switch on to plot live output
 RUN.save     =  0;               % switch on to save output files
-RUN.nop      =  1;               % output every 'nop' grid steps of transport
+RUN.nop      =  5;               % output every 'nop' grid steps of transport
 RUN.nup      =  1;               % update every 'nup' grid steps of transport
 RUN.selfgrav = 1;
 
@@ -54,23 +57,23 @@ PHY.Eta0.s  =  1e20;    PHY.Eta0.l  =  1e1;     PHY.Eta0.a  =   1e17;    % refer
 PHY.aT0     =  3e-5;                            PHY.aT0a    =   0;       % thermal expansivity [1/K]
 PHY.kT0     =  1;                               PHY.kT0a    =   300;    % Thermal conductivity [W/m/K]
 PHY.Cp0     =  1000;            % Volumetric heat capacity [J/kg/K]
-PHY.Hr0     =  1e-6;            % Radiogenic heat productivity [W/m3]
+PHY.Hr0     =  1e-8;            % Radiogenic heat productivity [W/m3]
 PHY.gz      =  10;              % z-gravity 
 PHY.gx      =  0;               % x-gravity
 PHY.k0      =  1e-7;            % background permeability
 
 %% set initial condition
 SOL.T0      =  298;           	% reference/top potential temperature [C]
-SOL.T1      =  1000;           	% bottom potential temperature (if different from top) [C]
+SOL.T1      =  298;           	% bottom potential temperature (if different from top) [C]
 SOL.Ta      =  298;             % Air temperature
 SOL.dT      =  200;           	% temperature perturbation amplitude [C]
 SOL.rT      =  NUM.L/6;         % radius of hot plume [m]
 SOL.zT      =  0;         % z-position of hot plume [m]
 SOL.xT      =  0;         % x-position of hot plume [m]
 
-SOL.phi0    =  0.01;            % background liquid fraction [vol]
-% SOL.phi0    =  0;            % background liquid fraction [vol]
-SOL.dphi    =  0.04;           	% liquid fraction perturbation amplitude [vol]
+% SOL.phi0    =  0.01;            % background liquid fraction [vol]
+SOL.phi0    =  0.05;            % background liquid fraction [vol]
+SOL.dphi    =  0;           	% liquid fraction perturbation amplitude [vol]
 SOL.philim  =  1e-4;            % limit liquid fraction for numerical stability
 
 SOL.Ttype   = 'constant';       % constant ambient background temperature
@@ -81,6 +84,7 @@ SOL.Ttype   = 'constant';       % constant ambient background temperature
 SOL.PhiType = 'constant';
 % SOL.PhiType = 'wet bottom'
 % SOL.PhiType = 'gaussian';
+SOL.PhiType = 'dry';
 
 
 %% set boundary conditions

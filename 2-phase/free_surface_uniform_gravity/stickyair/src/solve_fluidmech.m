@@ -37,30 +37,59 @@ RR  = [];       % forcing entries for R
 % % ================================================== % %
 % Z Stokes equation
 % boundary conditions
+
+% % free/no slip boundary condition
+% % left boundary
+% ii = indW(:,1); jj1 = ii; jj2 = indW(:,2);
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa+1];
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa+SOL.BCleft];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % bottom boundary
+% ii = indW(:,end); jj1 = ii; jj2 = indW(:,end-1);
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa(:)+1];
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa(:)+SOL.BCright];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % top boundary
+% ii = indW(1,:).'; jj = ii;
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % bottom boundary
+% ii = indW(end,:).'; jj = ii;
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+
+% test normal stress free boundary condition
 % left boundary
-ii = indW(:,1); jj1 = ii; jj2 = indW(:,2);
+ii = indW(:,1);   jj = ii; 
 aa = zeros(size(ii));
-II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa+1];
-II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa+SOL.BCleft];
+II = [II; ii(:)]; JJ = [JJ; jj(:)];    AA = [AA; aa(:)+1];
 IR = [IR; ii(:)]; RR = [RR; aa(:)];
 
-% bottom boundary
-ii = indW(:,end); jj1 = ii; jj2 = indW(:,end-1);
+% right boundary
+ii = indW(:,end); jj = ii;
 aa = zeros(size(ii));
-II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa(:)+1];
-II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa(:)+SOL.BCright];
+II = [II; ii(:)]; JJ = [JJ; jj(:)];    AA = [AA; aa(:)+1];
 IR = [IR; ii(:)]; RR = [RR; aa(:)];
 
 % top boundary
-ii = indW(1,:).'; jj = ii;
+ii = indW(1,2:end-1).';   jj1 = ii; jj2 = indW(2,2:end-1).'; 
 aa = zeros(size(ii));
-II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
+II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa-1/NUM.dz];
+II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa+1/NUM.dz];
 IR = [IR; ii(:)]; RR = [RR; aa(:)];
 
 % bottom boundary
-ii = indW(end,:).'; jj = ii;
+ii = indW(end,2:end-1).'; jj1 = ii; jj2 = indW(end-1,2:end-1).';
 aa = zeros(size(ii));
-II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
+II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa+1/NUM.dz];
+II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa-1/NUM.dz];
 IR = [IR; ii(:)]; RR = [RR; aa(:)];
 
 % internal points
@@ -103,30 +132,59 @@ rr = zeros(size(ii)) - PHY.gz(2:end-1,2:end-1).*( (MAT.Rho.t(2:end-2,2:end-1)+MA
 IR = [IR; ii(:)];  RR = [RR; rr(:)];
 
 %% X Stokes equation
-% top boundary
-ii = indU(1,:).'; jj1 = ii; jj2 = indU(2,:).';
+
+% % free/no slip boundary condition
+% % top boundary
+% ii = indU(1,:).'; jj1 = ii; jj2 = indU(2,:).';
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa+1];
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa+SOL.BCtop];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % bottom boundary
+% ii = indU(end,:).'; jj1 = ii; jj2 = indU(end-1,:).';
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa(:)+1];
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa(:)+SOL.BCbot];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % left side boundary
+% ii = indU(:,1); jj = ii;
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % right side boundary
+% ii = indU(:,end); jj = ii;
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+
+% test normal stress free boundary condition
+% left boundary
+ii = indU(2:end-1,1);   jj1 = ii; jj2 = indU(2:end-1,2);
 aa = zeros(size(ii));
-II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa+1];
-II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa+SOL.BCtop];
+II = [II; ii(:)]; JJ = [JJ; jj1(:)];    AA = [AA; aa(:)-1/NUM.dz];
+II = [II; ii(:)]; JJ = [JJ; jj2(:)];    AA = [AA; aa(:)+1/NUM.dz];
+IR = [IR; ii(:)]; RR = [RR; aa(:)];
+
+% right boundary
+ii = indU(2:end-1,end); jj1 = ii; jj2 = indU(2:end-1,end-1);
+aa = zeros(size(ii));
+II = [II; ii(:)]; JJ = [JJ; jj1(:)];    AA = [AA; aa(:)+1/NUM.dz];
+II = [II; ii(:)]; JJ = [JJ; jj2(:)];    AA = [AA; aa(:)-1/NUM.dz];
+IR = [IR; ii(:)]; RR = [RR; aa(:)];
+
+% top boundary
+ii = indU(1,:).';   jj = ii;  
+aa = zeros(size(ii));
+II = [II; ii(:)]; JJ = [JJ; jj(:)];    AA = [AA; aa+1];
 IR = [IR; ii(:)]; RR = [RR; aa(:)];
 
 % bottom boundary
-ii = indU(end,:).'; jj1 = ii; jj2 = indU(end-1,:).';
+ii = indU(end,:).'; jj = ii;
 aa = zeros(size(ii));
-II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa(:)+1];
-II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa(:)+SOL.BCbot];
-IR = [IR; ii(:)]; RR = [RR; aa(:)];
-
-% left side boundary
-ii = indU(:,1); jj = ii;
-aa = zeros(size(ii));
-II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
-IR = [IR; ii(:)]; RR = [RR; aa(:)];
-
-% right side boundary
-ii = indU(:,end); jj = ii;
-aa = zeros(size(ii));
-II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
+II = [II; ii(:)]; JJ = [JJ; jj(:)];    AA = [AA; aa+1];
 IR = [IR; ii(:)]; RR = [RR; aa(:)];
 
 % internal points
@@ -212,6 +270,33 @@ aa = zeros(size(ii));
 II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
 IR = [IR; ii(:)]; RR = [RR; aa(:)];
 
+% % test normal stress free boundary condition
+% % left boundary
+% ii = indW(:,1);   jj = ii;
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj(:)];    AA = [AA; aa(:)+1];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % right boundary
+% ii = indW(:,end); jj = ii;
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj(:)];    AA = [AA; aa(:)+1];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % top boundary
+% ii = indW(1,2:end-1).';   jj1 = ii; jj2 = indW(2,2:end-1).';
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa-1/NUM.dz];
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa+1/NUM.dz];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % bottom boundary
+% ii = indW(end,2:end-1).'; jj1 = ii; jj2 = indW(end-1,2:end-1).';
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];   AA = [AA; aa+1/NUM.dz];
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];   AA = [AA; aa-1/NUM.dz];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+
 % internal points
 ii = indW(2:end-1,2:end-1);
 aa = -MAT.EtaW.l(2:end-1,2:end-1)./MAT.kW(2:end-1,2:end-1);
@@ -251,6 +336,33 @@ ii = indU(:,end); jj = ii;
 aa = zeros(size(ii));
 II = [II; ii(:)]; JJ = [JJ; jj(:)];   AA = [AA; aa+1];
 IR = [IR; ii(:)]; RR = [RR; aa(:)];
+
+% % test normal stress free boundary condition
+% % left boundary
+% ii = indU(2:end-1,1);   jj1 = ii; jj2 = indU(2:end-1,2);
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];    AA = [AA; aa(:)-1/NUM.dz];
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];    AA = [AA; aa(:)+1/NUM.dz];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % right boundary
+% ii = indU(2:end-1,end); jj1 = ii; jj2 = indU(2:end-1,end-1);
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj1(:)];    AA = [AA; aa(:)+1/NUM.dz];
+% II = [II; ii(:)]; JJ = [JJ; jj2(:)];    AA = [AA; aa(:)-1/NUM.dz];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % top boundary
+% ii = indU(1,:).';   jj = ii;  
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj(:)];    AA = [AA; aa+1];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
+% 
+% % bottom boundary
+% ii = indU(end,:).'; jj = ii;
+% aa = zeros(size(ii));
+% II = [II; ii(:)]; JJ = [JJ; jj(:)];    AA = [AA; aa+1];
+% IR = [IR; ii(:)]; RR = [RR; aa(:)];
 
 % internal points
 ii = indU(2:end-1,2:end-1);
@@ -456,6 +568,7 @@ SOL.phiU = (SOL.phi(:,1:end-1) + SOL.phi(:,2:end))./2; SOL.phiW = (SOL.phi(1:end
 SOL.W.l = SOL.Wseg./SOL.phiW  + SOL.W.s;
 SOL.U.l = SOL.Useg./SOL.phiU  + SOL.U.s;
 SOL.W.l(isinf(SOL.W.l)) = 0; SOL.U.l(isinf(SOL.U.l)) = 0;
+SOL.W.l(isnan(SOL.W.l)) = 0; SOL.U.l(isnan(SOL.U.l)) = 0;
 % project velocities to centre nodes
 SOL.UP.seg(:,2:end-1) = SOL.Useg(:,1:end-1)+SOL.Useg(:,2:end)./2;
 SOL.WP.seg(2:end-1,:) = SOL.Wseg(1:end-1,:)+SOL.Wseg(2:end,:)./2;
